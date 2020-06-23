@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en-us">
+
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>%UNITY_WEB_NAME%</title>
+    <style>
+      html {
+        box-sizing: border-box;
+      }
+      *, *:before, *:after {
+        box-sizing: inherit;
+      }
+      body {
+        margin: 0;
+        background: #444;
+      }
+      #gameContainer {
+        width: 100vw;
+        height: 100vh;
+      }
+      canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      /* try to handle mobile dialog */
+      canvas + * {
+        z-index: 2;
+      }
+      .gamelogo {
+          display: block;
+          max-width: 35%;
+          max-height: 70vh;
+      }
+      .logos {
+          display: block;
+          max-width: 30%;
+      }
+      #loader {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: space-around;
+        background-color: rgb(255, 255, 255);
+        opacity: 1;
+        transition: opacity 0.2s ease;
+      }
+      #loader > * {
+        opacity: 1;
+        transition: opacity 0.15s ease;
+      }
+      #loader.hidden {
+        opacity: 0;
+      }
+      #loader.hidden > * {
+        opacity: 0;
+      }
+
+      progress {
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        border: 2px solid rgba(0, 0, 0, 0.5);
+
+        width: 50vw;
+        height: 2.5vw;
+        border-radius: 2.5vw;
+      }
+      progress::-webkit-progress-bar {
+        background-color: #eee;
+        border-radius: 2.5vw;
+      }
+      progress::-webkit-progress-value {
+        background-color: #ffd046;
+        border-radius: 2.5vw;
+      }
+      progress::-moz-progress-bar {
+        background-color: #ffd046;
+        border-radius: 2.5vw;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="gameContainer"></div>
+    <div id="loader">
+      <img src="%UNITY_CUSTOM_GAME_NAME%Logo.png" class="gamelogo" alt="%UNITY_CUSTOM_GAME_NAME%">
+      <progress class="progress" max="1">0 %</progress>
+      <img src="Logos.png" class="logos" alt="ZHdK | Dividat | ETH">
+    </div>
+
+    <script src="https://play.dividat.com/PlayEGI.js"></script>
+    <script src="%UNITY_WEBGL_LOADER_URL%"></script>
+    <script>
+    var gameInstance = UnityLoader.instantiate("gameContainer", "%UNITY_WEBGL_BUILD_URL%", {onProgress: UnityProgress});
+    function UnityProgress(gameInstance, progress) {
+      if (!gameInstance.Module) {
+        return;
+      }
+      const loader = document.querySelector("#loader");
+      const progressBar = document.querySelector("#loader .progress");
+      progressBar.value = progress;
+      progressBar.innerText = Math.floor(progress * 100) + " %";
+
+      if (progress === 1 && !gameInstance.removeTimeout) {
+        gameInstance.removeTimeout = setTimeout(function() {
+          loader.className = "hidden";
+        }, 2000);
+      }
+    }
+    </script>
+  </body>
+
+</html>
