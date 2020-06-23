@@ -1,0 +1,25 @@
+{
+  "name": "com.dividat.dividatsenso",
+  "version": "0.1.0",
+  "displayName": "Dividat Senso Plugin",
+  "description": "This package is for the use with the Dividat Senso, and is required to develop games for that platform.\n\nAfter adding this package, please also download the WebGL Template from the samples below, and move the directory 'WebGL Templates' to the root of the Assets folder. Then set the Dividat template in the WebGL Build settings in order to test the game in Dividat PlayDev",
+  "unity": "2019.1",
+  "unityRelease": "0b5",
+  "dependencies": {},
+  "keywords": [
+    "Dividat",
+    "Senso"
+  ],
+  "author": {
+    "name": "Johannes Emerich, Stefan Schmidlin",
+    "email": "hallo@dividat.com",
+    "url": "https://www.dividat.com"
+  },
+  "samples": [
+       	{
+           "displayName": "WebGL Templates",
+           "description": "In order to publish your game within Dividat Manager or test in Dividat PlayDev, the Dividat WebGL Template must be used.",
+           "path": "Samples~/WebGLTemplates"
+         }
+      ]
+}
