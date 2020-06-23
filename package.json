@@ -16,10 +16,10 @@
     "url": "https://www.dividat.com"
   },
   "samples": [
-       	{
-           "displayName": "WebGL Templates",
-           "description": "In order to publish your game within Dividat Manager or test in Dividat PlayDev, the Dividat WebGL Template must be used.",
-           "path": "Samples~/WebGLTemplates"
-         }
-      ]
+    {
+      "displayName": "WebGL Templates",
+      "description": "In order to publish your game within Dividat Manager or test in Dividat PlayDev, the Dividat WebGL Template must be used.",
+      "path": "Samples~/WebGLTemplates"
+    }
+  ]
 }
