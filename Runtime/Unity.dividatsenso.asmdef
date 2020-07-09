@@ -2,6 +2,7 @@
     "name": "Dividat Senso Plugin",
     "references": [],
     "includePlatforms": [
+        "Editor",
         "WebGL"
     ],
     "excludePlatforms": [],
