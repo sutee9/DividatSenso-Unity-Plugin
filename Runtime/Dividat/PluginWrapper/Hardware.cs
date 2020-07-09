@@ -6,34 +6,6 @@ using UnityEngine;
 namespace Dividat
 {
 
-    public struct Plate
-    {
-        public float x, y, f;
-        public bool active;
-        public int changedAt;
-        public Plate(float x_, float y_, float f_)
-        {
-            x = x_;
-            y = y_;
-            f = f_;
-            active = false;
-            changedAt = Int32.MaxValue;
-        }
-
-        public Plate(float x_, float y_, float f_, bool active, int changedFrame)
-        {
-            x = x_;
-            y = y_;
-            f = f_;
-            this.active = active;
-            changedAt = changedFrame;
-        }
-
-        public override string ToString(){
-            return "(" + x + ", " + y + ", f=" + f + "); " + (active? "active " : "inactive") + " since " + changedAt;
-        }
-    }
-
     /// <summary>
     /// <code>Hardware</code> is the representation of the Senso Hardware. It acts as a substitute of the Unity Input, and maps the 5
     /// plates of the Senso to plates, which can be obtained by <code>GetPlateState()</code>, while steps are reported by
@@ -97,12 +69,6 @@ namespace Dividat
             Debug.LogWarning("SENSO Hardware is not supported on this platform. Plates can be simulated with LEFT, RIGHT, UP, DOWN arrows and SPACE key");
             #endif
         }
-
-        #region Simulated Input
-
-
-
-        #endregion
 
         #region Support Functions
         private static void SetActiveState(Direction direction, bool active)

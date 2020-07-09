@@ -1,16 +1,45 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Dividat;
 
 ///<summary>Senso Manager summarizes all access to the Senso platform. You do not normally need to access
 ///the hardware and service representations <code>Dividat.Hardware</code> and <code>Dividat.Software</code>.
-///You should never need direct access to the two plugin classes, as they do not support simulated key input.
-///Use SensoManager.Instance to instantiate a singleton.</summary>
+///Direct access to these two core classes is not needed in most cases. SensoManager</summary>
 namespace Dividat {
 
-    public enum SimulatedKeyInputType {absolute, relative};
+    public enum SimulatedKeyInputType {StepPlate, CenterOfGravity};
+
     public class SensoManager : MonoBehaviour, IPlayBehaviour
     { 
+        #region EditorProperties
+        [Header("Behaviour Configuration")]
+        [Tooltip("If force on all plates combined is lower than this value, it is considered that the player is jumping")]
+        public float jumpForceThreshold = 0.05f;
+        [Tooltip("The maximum time a jump may last in seconds. If the person lands before this the jump is cancelled, the OnJumpLanded event is triggered. Else, the jump is cancelled with the OnJumpCancelled event.")]
+        public float maxJumpTime = 1f;  
+
+        [Tooltip("If there is less weight on Senso than this threshold, it is considered that no person is present. If there is no person present for more than activityTimeout, then personPresent becomes false.")]
+        public float playerPresenceForceThreshold = 0.05f;
+        [Tooltip("How many seconds without input above playerPresenceForceThreshold before personPresent becomes false.")]
+        public float activityTimeout = 10f; 
+
+        [Header("Key Input Simulation")]
+        [Tooltip("If StepPlate, pressing the left/right/up/down/space key will trigger a step on the relative plate. If CenterOfGravity, a simulated point-sized player will move around on the Senso. Use the second setting for balancing games or absolute position. In most cases, use StepPlates however.")]
+        public SimulatedKeyInputType keyInputType = SimulatedKeyInputType.StepPlate;
+
+        public float centerOfGravitySpeed = 3f;
+
+        [Header("Current Status")]
+        public bool jump = false;
+        public bool playerPresent = false;
+        #endregion EditorProperties
+
+        [Header("Advanced Configuration")]
+        [Tooltip("Allows to configure varying SensoSetups. Leave empty to get default setting.")]
+        public SensoHardwareConfiguration sensoHardwareConfiguration;
+
+        
         //Public Properties
         public static SensoManager Instance
         {
@@ -24,36 +53,31 @@ namespace Dividat {
                         GameObject obj = new GameObject ();
                         obj.name = "SensoManager";
                         _instance = obj.AddComponent<SensoManager> ();
-
-                        //Set up the Hardware configuration
-                        if (_instance.sensoHardwareConfiguration == null){
-                            _instance.SetupDefaultConfiguration();
-                        }
-                        _instance._plates = new Plate[Instance.sensoHardwareConfiguration.hardwarePlates.Length];
-                        
                     }
                 }
                 return _instance;
             }
         }
         
-        public SensoHardwareConfiguration sensoHardwareConfiguration;
-        public float jumpForceThreshold = 0.05f;
-        public float maxJumpTime = 2f;
-        public bool jump = false;
-        public bool playerPresent = false;
-        public float playerPresenceForceThreshold = 0.05f;
-        public float activityTimeout = 10f; //How many seconds without input before personPresent becomes true
+
+        public float TotalForce {
+            get {
+                return _totalForce;
+            }
+        }
+       
 
 
-        [Tooltip("If absolute, pressing the left/right/up/down/space key will position the center of gravity absolutely at the simulated input point. If relative, the cog will keep moving to the direction of the combined key input at speed until it reaches the bounds of the senso hardware configuration.")]
-        public SimulatedKeyInputType keyInputType = SimulatedKeyInputType.relative;
+ 
+        
         public Settings Settings {
             get {
                 return _settings;
             }
         }
         
+        public delegate void DividatEvent();
+        public delegate void DividatPositionEvent(float x, float y);
         public event DividatEvent OnSuspended;
         public event DividatEvent OnResumed;
         public event DividatEvent OnReady;
@@ -69,76 +93,112 @@ namespace Dividat {
             }
         }
 
-        public float TotalForce {
-            get {
-                return _totalForce;
-            }
-        }
-
-        //Private Status Vars
-        private Plate[] _plates;
-        private bool logging = false;
-        public delegate void DividatEvent();
-        public delegate void DividatPositionEvent(float x, float y);
-        private Settings _settings;
-        private float _totalForce = 0f;
+        #region Private Variables
+        //Private Config Vars
         private static SensoManager _instance;
+        private Settings _settings;
+        private Vector2 _sensoCenter;
+
+        //Private movement-related vars
+        [SerializeField]
+        private Plate[] _plates;
+        
+        private bool logging = false;
+        private float _totalForce = 0f;
+        
         private Vector2 _cog;
         private Vector2 _lastValidCog;
-        private Vector2 _sensoCenter;
+
+        [SerializeField]
+        private Vector2 _simulatedCog = Vector2.positiveInfinity;
+        
         private float _jumpTimer = float.MaxValue;
-
         private float lastActivity = float.MinValue;
+        #endregion Private Vars
 
-        protected virtual void Awake ()
+        protected void Awake ()
         {
             //Check the singleton is unique
             if ( _instance == null )
             {
-                _instance = this;
+                Debug.Log("Hello");
+                _instance = SensoManager.Instance;
+
+                //Set up the Hardware configuration
+                if (_instance.sensoHardwareConfiguration == null){
+                    _instance.sensoHardwareConfiguration = SensoHardwareConfiguration.InstantiateStandardConfiguration();
+                }
+                _instance._plates = new Plate[Instance.sensoHardwareConfiguration.hardwarePlates.Length];
                 DontDestroyOnLoad ( gameObject );
             }
             else
             {
                 Destroy ( gameObject );
             }
-
-            
         }
 
-        void Start(){
+        protected void Start(){
             // Register hooks with platform interface
             Play.Init(this);
             logging = Debug.isDebugBuild;
             _sensoCenter = sensoHardwareConfiguration.upperLeftCorner + sensoHardwareConfiguration.Dimensions/2f;
+            _cog = _lastValidCog = _simulatedCog = _sensoCenter;
         }
 
         // Update is called once per frame
-        void LateUpdate()
+        protected void LateUpdate()
         {
             _lastValidCog = _cog;
-            //1. UPDATE PLATE STATE (including simulation with keys)
+            //1. UPDATE PLATE STATE
             _plates = (Plate[])Hardware.Plates.Clone();
             
             Direction[] dirs = (Direction[])System.Enum.GetValues(typeof(Direction));
             bool keyInputDetected = false;
-            foreach(Direction dir in dirs){
-                KeyCode key = DirectionToKey(dir);
-                if (Input.GetKeyDown(key)){
-                    //Debug.Log("step " + dir);
-                    _plates[(int)dir] = GetSimulatedPlate(dir, true, true);
-                    keyInputDetected = true;
-                    
+
+            if (keyInputType == SimulatedKeyInputType.StepPlate){
+                foreach(Direction dir in dirs){
+                    KeyCode key = DirectionToKey(dir);
+                    if (Input.GetKeyDown(key)){
+                        //Debug.Log("step " + dir);
+                        _plates[(int)dir] = GetSimulatedPlate(dir, true, true);
+                        keyInputDetected = true;
+                        
+                    }
+                    else if (Input.GetKeyUp(key)){
+                        //Debug.Log("release " + dir);
+                        _plates[(int)dir] = GetSimulatedPlate(dir, false, true);
+                        keyInputDetected = true;
+                    }
+                    else if (Input.GetKey(key)){
+                        //Debug.Log("down " + dir); 
+                        _plates[(int)dir] = GetSimulatedPlate(dir, true, false); 
+                        keyInputDetected=true;
+                    }
                 }
-                else if (Input.GetKeyUp(key)){
-                    //Debug.Log("release " + dir);
-                    _plates[(int)dir] = GetSimulatedPlate(dir, false, true);
-                    keyInputDetected = true;
-                }
-                else if (Input.GetKey(key)){
-                    //Debug.Log("down " + dir); 
-                    _plates[(int)dir] = GetSimulatedPlate(dir, true, false); 
-                    keyInputDetected=true;
+            }
+            else if (keyInputType == SimulatedKeyInputType.CenterOfGravity) {
+                foreach(Direction dir in dirs){
+                    KeyCode key = DirectionToKey(dir);
+                    if (Input.GetKey(key)){
+                        keyInputDetected=true;
+                        _simulatedCog += Time.deltaTime*centerOfGravitySpeed*DirectionToVector(dir);
+                        if (_simulatedCog.x < sensoHardwareConfiguration.upperLeftCorner.x){
+                             _simulatedCog.x = sensoHardwareConfiguration.upperLeftCorner.x;
+                        }
+                        else if (_simulatedCog.x > sensoHardwareConfiguration.lowerRightCorner.x){
+                            _simulatedCog.x = sensoHardwareConfiguration.lowerRightCorner.x;
+                        }
+                        if (_simulatedCog.y < sensoHardwareConfiguration.upperLeftCorner.y){
+                            _simulatedCog.y = sensoHardwareConfiguration.upperLeftCorner.y;
+                        }
+                        else if (_simulatedCog.y > sensoHardwareConfiguration.lowerRightCorner.y){
+                            _simulatedCog.y = sensoHardwareConfiguration.lowerRightCorner.y;
+                        }
+                        SensoPlateSetup targetPlate = sensoHardwareConfiguration.GetCorrespondingDirection(_simulatedCog);
+                        if (targetPlate != null){
+                            _plates[(int)targetPlate.direction] = new Plate(_simulatedCog.x, _simulatedCog.y, 0.25f);
+                        }
+                    }
                 }
             }
 
@@ -152,30 +212,10 @@ namespace Dividat {
             }
             if (Mathf.Abs(weight) > playerPresenceForceThreshold)
             {
-                cog = 1 / weight * cog;
-                if (keyInputType == SimulatedKeyInputType.relative && keyInputDetected){
-                    Vector2 direction = cog-_sensoCenter;
-                    cog = _lastValidCog+direction.normalized*2f*Time.deltaTime;
-                    if (cog.x < sensoHardwareConfiguration.upperLeftCorner.x){
-                        cog.x = sensoHardwareConfiguration.upperLeftCorner.x;
-                    }
-                    else if (cog.x > sensoHardwareConfiguration.lowerRightCorner.x){
-                        cog.x = sensoHardwareConfiguration.lowerRightCorner.x;
-                    }
-                    if (cog.y < sensoHardwareConfiguration.upperLeftCorner.y){
-                        cog.y = sensoHardwareConfiguration.upperLeftCorner.y;
-                    }
-                    else if (cog.y > sensoHardwareConfiguration.lowerRightCorner.y){
-                        cog.y = sensoHardwareConfiguration.lowerRightCorner.y;
-                    }
-                    _cog = cog;
-                }
-                else {
-                    _cog = 1 / weight * cog;
-                }
+                _cog = 1 / weight * cog;
             }
             else {
-                _cog = _sensoCenter;
+                _cog = _lastValidCog;
             }
             _totalForce = weight;
 
@@ -238,44 +278,6 @@ namespace Dividat {
             if (logging) Debug.Log("[SensoManager] OnSuspend. Subscribe to OnSuspended event for alerts.");
             OnSuspended?.Invoke();
         }
-
-        
-        public void SetupDefaultConfiguration(){
-            sensoHardwareConfiguration = ScriptableObject.CreateInstance<SensoHardwareConfiguration>();
-            sensoHardwareConfiguration.upperLeftCorner = new Vector2(0f, 0f);
-            sensoHardwareConfiguration.lowerRightCorner = new Vector2(3f, 3f);
-            sensoHardwareConfiguration.hardwarePlates = new SensoPlateSetup[5];
-
-            //center
-            sensoHardwareConfiguration.hardwarePlates[0] = new SensoPlateSetup();
-            sensoHardwareConfiguration.hardwarePlates[0].direction = Direction.Center;
-            sensoHardwareConfiguration.hardwarePlates[0].upperLeftCorner = new Vector2(1f, 1f);
-            sensoHardwareConfiguration.hardwarePlates[0].lowerRightCorner = new Vector2(2f, 2f);
-
-            //up
-            sensoHardwareConfiguration.hardwarePlates[1] = new SensoPlateSetup();
-            sensoHardwareConfiguration.hardwarePlates[1].direction = Direction.Up;
-            sensoHardwareConfiguration.hardwarePlates[1].upperLeftCorner = new Vector2(0f, 0f);
-            sensoHardwareConfiguration.hardwarePlates[1].lowerRightCorner = new Vector2(3f, 1f);
-
-            //right
-            sensoHardwareConfiguration.hardwarePlates[2] = new SensoPlateSetup();
-            sensoHardwareConfiguration.hardwarePlates[2].direction = Direction.Right;
-            sensoHardwareConfiguration.hardwarePlates[2].upperLeftCorner = new Vector2(2f, 0f);
-            sensoHardwareConfiguration.hardwarePlates[2].lowerRightCorner = new Vector2(3f, 3f);
-
-            //down
-            sensoHardwareConfiguration.hardwarePlates[3] = new SensoPlateSetup();
-            sensoHardwareConfiguration.hardwarePlates[3].direction = Direction.Down;
-            sensoHardwareConfiguration.hardwarePlates[3].upperLeftCorner = new Vector2(0f, 2f);
-            sensoHardwareConfiguration.hardwarePlates[3].lowerRightCorner = new Vector2(3f, 3f);
-
-            //left
-            sensoHardwareConfiguration.hardwarePlates[4] = new SensoPlateSetup();
-            sensoHardwareConfiguration.hardwarePlates[4].direction = Direction.Down;
-            sensoHardwareConfiguration.hardwarePlates[4].upperLeftCorner = new Vector2(0f, 0f);
-            sensoHardwareConfiguration.hardwarePlates[4].lowerRightCorner = new Vector2(1f, 3f);
-        }
         
         /**
         * Get the plate state. This includes the state of simulated key input.
@@ -310,6 +312,25 @@ namespace Dividat {
                     return KeyCode.DownArrow;
                 case Direction.Left:
                     return KeyCode.LeftArrow;
+                default:
+                    throw new System.Exception("Exhaustiveness?");
+            }
+        }
+
+        private static Vector2 DirectionToVector(Direction direction)
+        {
+            switch (direction)
+            {
+                case Direction.Center:
+                    return Vector2.zero;
+                case Direction.Up:
+                    return Vector2.down;
+                case Direction.Right:
+                    return Vector2.right;
+                case Direction.Down:
+                    return Vector2.up;
+                case Direction.Left:
+                    return Vector2.left;
                 default:
                     throw new System.Exception("Exhaustiveness?");
             }
