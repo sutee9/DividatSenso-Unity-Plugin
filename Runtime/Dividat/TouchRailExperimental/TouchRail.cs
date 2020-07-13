@@ -1,8 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System.IO.Ports;
 using System;
+#if UNITY_EDITOR || !UNITY_WEBGL
+using System.IO.Ports;
+#endif
 
 namespace Dividat.TouchRail {
     public class TouchRail : MonoBehaviour
@@ -20,47 +22,48 @@ namespace Dividat.TouchRail {
         public GameObject[] touchZones;
         
         //Private Status Vars
-        private ArduinoConnection _arduino;
+        private ArduinoSerial _arduino;
         private int _lastUpdatedFrame = -1;
 
         // Start is called before the first frame update
         void Start()
         {
-            ListPorts();
-            _arduino = new ArduinoConnection(comPort, 115200);
-            // _arduino.OnLineReceived+= UpdateTouchRailStatus;
+            try {
+                _arduino = new ArduinoSerial(comPort, 115200);
+            }
+            catch (Exception e){
+                Debug.LogWarning("[TouchRail] Failed to establish connection to TouchRail: " + e.Message);
+            }
         }
 
-        // void UpdateTouchRailStatus(){
-        //     Debug.Log("Update in frame" + _lastUpdatedFrame);
-        // }
-
         void Update(){
-            string railRaw = _arduino.LastLine;
-            if (railRaw != null && railRaw != ""){
-                string[] values = railRaw.Split(',');
-                if (values.Length != 8){
-                    Debug.Log(values.Length);
-                }
-                else {
-                    _lastUpdatedFrame = Time.frameCount;
+            if (_arduino != null){
+                string railRaw = _arduino.LastLine;
+                if (railRaw != null && railRaw != ""){
+                    string[] values = railRaw.Split(',');
+                    if (values.Length != 8){
+                        Debug.Log(values.Length);
+                    }
+                    else {
+                        _lastUpdatedFrame = Time.frameCount;
 
-                    for (int i=2; i < values.Length; i++){
-                        float pressureValue = float.Parse(values[i]);
-                        if (pressureValue > thresholdPressed){
-                            touchZones[i-2].transform.localScale = new Vector3(0.20f, 0.75f, 0.20f);
-                            Debug.Log("active=" + i + " value= " + values[i]);
-                        }
-                        else if (pressureValue > thresholdTouched){
-                            touchZones[i-2].transform.localScale = new Vector3(
-                                0.4f - 0.2f*(pressureValue-thresholdTouched)/(thresholdPressed-thresholdTouched), 
-                                0.75f, 
-                                0.4f - 0.2f*(pressureValue-thresholdTouched)/(thresholdPressed-thresholdTouched)
-                            );
-                            Debug.Log("active=" + i + " value= " + values[i]);
-                        }
-                        else {
-                            touchZones[i-2].transform.localScale = new Vector3(0.4f, 0.75f, 0.4f);
+                        for (int i=2; i < values.Length; i++){
+                            float pressureValue = float.Parse(values[i]);
+                            if (pressureValue > thresholdPressed){
+                                touchZones[i-2].transform.localScale = new Vector3(0.20f, 0.75f, 0.20f);
+                                Debug.Log("active=" + i + " value= " + values[i]);
+                            }
+                            else if (pressureValue > thresholdTouched){
+                                touchZones[i-2].transform.localScale = new Vector3(
+                                    0.4f - 0.2f*(pressureValue-thresholdTouched)/(thresholdPressed-thresholdTouched), 
+                                    0.75f, 
+                                    0.4f - 0.2f*(pressureValue-thresholdTouched)/(thresholdPressed-thresholdTouched)
+                                );
+                                Debug.Log("active=" + i + " value= " + values[i]);
+                            }
+                            else {
+                                touchZones[i-2].transform.localScale = new Vector3(0.4f, 0.75f, 0.4f);
+                            }
                         }
                     }
                 }
@@ -69,11 +72,15 @@ namespace Dividat.TouchRail {
 
         [ContextMenu("List Ports")]
         public void ListPorts(){
+            #if UNITY_EDITOR || !UNITY_WEBGL
             Debug.Log("Available Port Names");
             foreach (string s in SerialPort.GetPortNames())
             {
                 Debug.Log(s);
             }
+            #else
+            Debug.Log("List Ports is not supported on this platform");
+            #endif
         }
 
         public void OnDestroy(){
