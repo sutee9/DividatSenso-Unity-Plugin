@@ -51,41 +51,46 @@ namespace Dividat {
 
         public static SensoHardwareConfiguration InstantiateStandardConfiguration(){
             SensoHardwareConfiguration hconfig = ScriptableObject.CreateInstance<SensoHardwareConfiguration>();
-            hconfig.upperLeftCorner = new Vector2(0f, 0f);
-            hconfig.lowerRightCorner = new Vector2(3f, 3f);
-            hconfig.hardwarePlates = new SensoPlateSetup[5];
+            hconfig.InitializeWithDefaultValues();
+            return hconfig;
+        }
+
+
+        [ContextMenu("Set to Default Values")]
+        public void InitializeWithDefaultValues(){
+            upperLeftCorner = new Vector2(0f, 0f);
+            lowerRightCorner = new Vector2(3f, 3f);
+            hardwarePlates = new SensoPlateSetup[5];
 
             //center
-            hconfig.hardwarePlates[0] = new SensoPlateSetup();
-            hconfig.hardwarePlates[0].direction = Direction.Center;
-            hconfig.hardwarePlates[0].upperLeftCorner = new Vector2(1f, 1f);
-            hconfig.hardwarePlates[0].lowerRightCorner = new Vector2(2f, 2f);
+            hardwarePlates[0] = new SensoPlateSetup();
+            hardwarePlates[0].direction = Direction.Center;
+            hardwarePlates[0].upperLeftCorner = new Vector2(1f, 1f);
+            hardwarePlates[0].lowerRightCorner = new Vector2(2f, 2f);
 
             //up
-            hconfig.hardwarePlates[1] = new SensoPlateSetup();
-            hconfig.hardwarePlates[1].direction = Direction.Up;
-            hconfig.hardwarePlates[1].upperLeftCorner = new Vector2(0f, 0f);
-            hconfig.hardwarePlates[1].lowerRightCorner = new Vector2(3f, 1f);
+            hardwarePlates[1] = new SensoPlateSetup();
+            hardwarePlates[1].direction = Direction.Up;
+            hardwarePlates[1].upperLeftCorner = new Vector2(0f, 0f);
+            hardwarePlates[1].lowerRightCorner = new Vector2(3f, 1f);
 
             //right
-            hconfig.hardwarePlates[2] = new SensoPlateSetup();
-            hconfig.hardwarePlates[2].direction = Direction.Right;
-            hconfig.hardwarePlates[2].upperLeftCorner = new Vector2(2f, 0f);
-            hconfig.hardwarePlates[2].lowerRightCorner = new Vector2(3f, 3f);
+            hardwarePlates[2] = new SensoPlateSetup();
+            hardwarePlates[2].direction = Direction.Right;
+            hardwarePlates[2].upperLeftCorner = new Vector2(2f, 0f);
+            hardwarePlates[2].lowerRightCorner = new Vector2(3f, 3f);
 
             //down
-            hconfig.hardwarePlates[3] = new SensoPlateSetup();
-            hconfig.hardwarePlates[3].direction = Direction.Down;
-            hconfig.hardwarePlates[3].upperLeftCorner = new Vector2(0f, 2f);
-            hconfig.hardwarePlates[3].lowerRightCorner = new Vector2(3f, 3f);
+            hardwarePlates[3] = new SensoPlateSetup();
+            hardwarePlates[3].direction = Direction.Down;
+            hardwarePlates[3].upperLeftCorner = new Vector2(0f, 2f);
+            hardwarePlates[3].lowerRightCorner = new Vector2(3f, 3f);
 
             //left
-            hconfig.hardwarePlates[4] = new SensoPlateSetup();
-            hconfig.hardwarePlates[4].direction = Direction.Left;
-            hconfig.hardwarePlates[4].upperLeftCorner = new Vector2(0f, 0f);
-            hconfig.hardwarePlates[4].lowerRightCorner = new Vector2(1f, 3f);
-
-            return hconfig;
+            hardwarePlates[4] = new SensoPlateSetup();
+            hardwarePlates[4].direction = Direction.Left;
+            hardwarePlates[4].upperLeftCorner = new Vector2(0f, 0f);
+            hardwarePlates[4].lowerRightCorner = new Vector2(1f, 3f);
         }
     }
     [System.Serializable]
