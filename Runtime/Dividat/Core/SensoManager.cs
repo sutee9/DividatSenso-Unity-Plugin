@@ -38,6 +38,7 @@ namespace Dividat {
         
         //Public Properties, offering all convenience functions to get Senso Status.
         #region Properties
+
         public static SensoManager Instance
         {
             get
@@ -56,6 +57,7 @@ namespace Dividat {
             }
         }
 
+        public bool logging = false;
         [Header("Current Status (Visualization Only, do not Edit)")]
         public bool jump = false;
 
@@ -129,7 +131,6 @@ namespace Dividat {
         [SerializeField]
         private Plate[] _plates;
         
-        private bool logging = false;
         private float _totalForce = 0f;
         
         private Vector2 _cog;
@@ -141,6 +142,7 @@ namespace Dividat {
         private float _jumpTimer = float.MaxValue;
         private float lastActivity = float.MinValue;
 
+        [SerializeField]
         private bool _playerPresent = false;
         private bool _playerPresentLast = false;
         #endregion Private Vars
@@ -202,6 +204,7 @@ namespace Dividat {
 
         protected void Start(){
             // Register hooks with platform interface
+            Debug.Log("Start");
             Play.Init(this);
             logging = Debug.isDebugBuild;
             _sensoCenter = sensoHardwareConfiguration.upperLeftCorner + sensoHardwareConfiguration.Dimensions/2f;
@@ -214,7 +217,7 @@ namespace Dividat {
             ProcessSensoInput();
 
             //Check Activity Timeouts and if Player Present
-            if (_totalForce > 0.01f){
+            if (_totalForce > playerPresenceForceThreshold){
                 lastActivity = Time.time;
             }
             _playerPresent = Time.time - lastActivity < activityTimeout;
@@ -226,7 +229,7 @@ namespace Dividat {
             if (_totalForce < jumpForceThreshold){
                 if (!jump && Mathf.Abs(_jumpTimer) < playerPresenceForceThreshold){
                     OnJumped?.Invoke(_cog.x, _cog.y);
-                    Debug.Log("Jumped");
+                    if (logging) Debug.Log("Jumped");
                     _jumpTimer = 0f;
                     jump = true;
                 }
@@ -234,7 +237,7 @@ namespace Dividat {
                     _jumpTimer += Time.deltaTime;
                     if (_jumpTimer > maxJumpTime & jump){
                         jump = false;
-                        Debug.Log("Jump Cancelled");
+                        if (logging) Debug.Log("Jump Cancelled");
                         OnJumpCancelled?.Invoke();
                     }
                 }
@@ -242,7 +245,7 @@ namespace Dividat {
             else{
                 if (jump) {
                     OnJumpLanded?.Invoke(_cog.x, _cog.y);
-                    Debug.Log("Jump landed");
+                    if (logging) Debug.Log("Jump landed");
                 }
                 jump=false;
                 _jumpTimer = 0f;

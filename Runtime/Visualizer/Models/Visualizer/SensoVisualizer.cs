@@ -68,9 +68,9 @@ namespace Dividat.Visualizer {
                 cog = SensoManager.Instance.CenterOfGravity;
                 //Debug.Log("cog now=" + cog);
                 centerOfGravity.transform.localPosition = new Vector3(
-                    ((cog.x - topLeftCorner.x) / _range_x) * basePlate_Length - basePlate_Length/2f,
+                    ((cog.x - topLeftCorner.x) / _range_x) * basePlate_Length,
                     SensoManager.Instance.jump ? jumpYgroundedY.x : jumpYgroundedY.y,
-                    (-1) * (((cog.y - topLeftCorner.y) / _range_y) * basePlate_Length - basePlate_Length / 2)
+                    (-1) * (((cog.y - topLeftCorner.y) / _range_y) * basePlate_Length)
                 );
                 //Debug.Log("cog="+ cog.x + " topLeft " + topLeftCorner.x + " range " + _range_x);// * basePlate_Length - basePlate_Length/2f);
             }
