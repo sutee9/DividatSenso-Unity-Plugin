@@ -12,6 +12,7 @@ namespace Dividat {
 
     public class SensoManager : MonoBehaviour, IPlayBehaviour
     { 
+        //User Configuration of the Manager
         #region EditorProperties
         [Header("Behaviour Configuration")]
         [Tooltip("If force on all plates combined is lower than this value, it is considered that the player is jumping")]
@@ -30,26 +31,13 @@ namespace Dividat {
 
         public float centerOfGravitySpeed = 3f;
 
-        [Header("Current Status")]
-        public bool jump = false;
-
-        public float JumpTimer {
-            get {
-                if (jump == true){
-                    return _jumpTimer;
-                }
-                else return 0f;
-            } 
-        }
-        public bool playerPresent = false;
-        #endregion EditorProperties
-
         [Header("Advanced Configuration")]
         [Tooltip("Allows to configure varying SensoSetups. Leave empty to get default setting.")]
         public SensoHardwareConfiguration sensoHardwareConfiguration;
-
+        #endregion EditorProperties
         
-        //Public Properties
+        //Public Properties, offering all convenience functions to get Senso Status.
+        #region Properties
         public static SensoManager Instance
         {
             get
@@ -67,37 +55,70 @@ namespace Dividat {
                 return _instance;
             }
         }
-        
 
+        [Header("Current Status (Visualization Only, do not Edit)")]
+        public bool jump = false;
+
+        //How long has the player been off the plate/force below jump threshold?
+        public float JumpTimer {
+            get {
+                if (jump == true){
+                    return _jumpTimer;
+                }
+                else return 0f;
+            } 
+        }
+        
+        //If there is more force than playerPresentForceThreshold on the Senso 
+        //or there is less force, but activity timeout has not yet expired, we 
+        //consider the player present (true), else this is false.
+        public bool PlayerPresent {
+            get { return _playerPresent; } 
+            set { _playerPresent = value; }
+        }
+
+        //The combined force applied to all plates summed up
         public float TotalForce {
             get {
                 return _totalForce;
             }
         }
-       
-        public Settings Settings {
-            get {
-                return _settings;
-            }
-        }
-        
-        public delegate void DividatEvent();
-        public delegate void DividatPositionEvent(float x, float y);
-        public event DividatEvent OnSuspended;
-        public event DividatEvent OnResumed;
-        public event DividatEvent OnReady;
 
-        public event DividatPositionEvent OnJumped;
-        public event DividatPositionEvent OnJumpLanded;
-        public event DividatEvent OnJumpCancelled;
-
-        ///This is equivalent to the player's calculated center of gravity.
+        ///This is equivalent to the player's calculated center of gravity. 
+        //It is centered at zero, and ranges as far as the Dimensions/2 of the 
+        //SensoHardwareConfiguration.  
         public Vector2 CenterOfGravity {
             get {
                 return _cog;
             }
         }
 
+        //The Settings object as received from Dividat Play. 
+        public Settings Settings {
+            get {
+                return _settings;
+            }
+        }
+        #endregion Properties
+
+        //Senso Play Updates / Application Status
+        public event DividatEvent OnSuspended;
+        public event DividatEvent OnResumed;
+        public event DividatEvent OnReady;
+
+        //Senso Movement Updates
+        public event DividatPositionEvent OnJumped;
+        public event DividatPositionEvent OnJumpLanded;
+        public event DividatEvent OnJumpCancelled;
+        public event DividatToggleEvent OnPlayerPresenceChanged;
+        public event DividatDirectionEvent OnStepDown;
+        public event DividatDirectionEvent OnStepReleased;
+
+        public delegate void DividatEvent();
+        public delegate void DividatToggleEvent(bool status);
+        public delegate void DividatPositionEvent(float x, float y);
+        public delegate void DividatDirectionEvent(Direction dir);
+        
         #region Private Variables
         //Private Config Vars
         private static SensoManager _instance;
@@ -119,8 +140,45 @@ namespace Dividat {
         
         private float _jumpTimer = float.MaxValue;
         private float lastActivity = float.MinValue;
+
+        private bool _playerPresent = false;
+        private bool _playerPresentLast = false;
         #endregion Private Vars
 
+        /**
+         * Get the plate state. This includes the state of simulated key input.
+         */
+        public Plate GetPlateState(Direction direction){
+            return _plates[(int)direction];
+        }
+
+        /**
+         * Returns true if plate is currently being stepped on.
+         */
+        public bool GetPlateActive(Direction direction)
+        {
+            return _plates[(int)direction].active;
+        }
+
+        /**
+         * Returns true if plate was stepped on during the time of the last frame.
+         */
+        public bool GetStep(Direction dir){
+            return _plates[(int)dir].changedAt == Time.frameCount-1 && _plates[(int)dir].active;
+        }
+
+        /**
+         * Returns true step was released on plate during the time of the last frame.
+         */
+        public bool GetRelease(Direction dir){
+            return _plates[(int)dir].changedAt == Time.frameCount-1 && !_plates[(int)dir].active;
+        }
+
+        public void Vibrate(MotorPattern preset){
+            Hardware.ActivateMotor(preset);   
+        }
+
+        #region Unity Boilerplate functions
         protected void Awake ()
         {
             //Check the singleton is unique
@@ -147,11 +205,11 @@ namespace Dividat {
             Play.Init(this);
             logging = Debug.isDebugBuild;
             _sensoCenter = sensoHardwareConfiguration.upperLeftCorner + sensoHardwareConfiguration.Dimensions/2f;
-            _cog = _lastValidCog = _simulatedCog = _sensoCenter;
+            _cog = _lastValidCog = _simulatedCog = Vector2.zero;
         }
 
         // Update is called once per frame
-        protected void LateUpdate()
+        protected void Update()
         {
             ProcessSensoInput();
 
@@ -159,7 +217,10 @@ namespace Dividat {
             if (_totalForce > 0.01f){
                 lastActivity = Time.time;
             }
-            playerPresent = Time.time - lastActivity < activityTimeout;
+            _playerPresent = Time.time - lastActivity < activityTimeout;
+            if (_playerPresent != _playerPresentLast){
+                OnPlayerPresenceChanged?.Invoke(_playerPresent);
+            }
 
             //Check for movement patterns
             if (_totalForce < jumpForceThreshold){
@@ -195,16 +256,23 @@ namespace Dividat {
             _plates = (Plate[])Hardware.Plates.Clone();
             
             Direction[] dirs = (Direction[])System.Enum.GetValues(typeof(Direction));
+            foreach(Direction dir in dirs){
+                if (GetStep(dir)){
+                    OnStepDown?.Invoke(dir);
+                }
+                if (GetRelease(dir)){
+                    OnStepReleased?.Invoke(dir);
+                }
+            }
+            
             bool keyInputDetected = false;
-
             if (keyInputType == SimulatedKeyInputType.StepPlate){
                 foreach(Direction dir in dirs){
                     KeyCode key = DirectionToKey(dir);
                     if (Input.GetKeyDown(key)){
                         //Debug.Log("step " + dir);
                         _plates[(int)dir] = GetSimulatedPlate(dir, true, true);
-                        keyInputDetected = true;
-                        
+                        keyInputDetected = true;  
                     }
                     else if (Input.GetKeyUp(key)){
                         //Debug.Log("release " + dir);
@@ -254,21 +322,23 @@ namespace Dividat {
             }
             if (Mathf.Abs(weight) > playerPresenceForceThreshold)
             {
-                _cog = 1 / weight * cog;
+                _cog = 1 / weight * cog - _sensoCenter; //adjust so center is 0,0
             }
             else {
                 _cog = _lastValidCog;
             }
             _totalForce = weight;
         }
+        #endregion Unity Boilerplate
 
+        #region Process Senso Events
         public void OnHello(Settings settings)
         {
             if (logging) Debug.Log("[SensoManager] OnHello");
-            Debug.Log(settings.ToString());
+            if (logging) Debug.Log("Settings: " +JsonUtility.ToJson(settings));
             _settings = settings;
-            Play.Ready();
             OnReady?.Invoke();
+            Play.Ready();
         }
 
         public void OnPing()
@@ -277,51 +347,18 @@ namespace Dividat {
             if (logging) Debug.Log("[SensoManager] OnPing");   
         }
 
-        public void OnResume()
-        {
-            if (logging) Debug.Log("[SensoManager] OnResume");
-            OnResumed?.Invoke();
-        }
-
         public void OnSuspend()
         {
             if (logging) Debug.Log("[SensoManager] OnSuspend. Subscribe to OnSuspended event for alerts.");
             OnSuspended?.Invoke();
         }
-        
-        /**
-         * Get the plate state. This includes the state of simulated key input.
-         */
-        public Plate GetPlateState(Direction direction){
-            return _plates[(int)direction];
-        }
 
-        /**
-         * Returns true if plate is currently being stepped on.
-         */
-        public bool GetPlateActive(Direction direction)
+        public void OnResume()
         {
-            return _plates[(int)direction].active;
+            if (logging) Debug.Log("[SensoManager] OnResume");
+            OnResumed?.Invoke();
         }
-
-        /**
-         * Returns true if plate was stepped on during the time of the last frame.
-         */
-        public bool GetStep(Direction dir){
-            return _plates[(int)dir].changedAt == Time.frameCount-1 && _plates[(int)dir].active;
-        }
-
-        /**
-         * Returns true step was released on plate during the time of the last frame.
-         */
-        public bool GetRelease(Direction dir){
-            return _plates[(int)dir].changedAt == Time.frameCount-1 && !_plates[(int)dir].active;
-        }
-
-        public void Vibrate(MotorPattern preset){
-            Hardware.ActivateMotor(preset);   
-        }
-
+        #endregion Process Senso Events
 
         #region Simulation Support Functions
         private static KeyCode DirectionToKey(Direction direction)

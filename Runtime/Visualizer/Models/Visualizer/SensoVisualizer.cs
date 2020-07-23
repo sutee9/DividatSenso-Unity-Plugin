@@ -61,7 +61,7 @@ namespace Dividat.Visualizer {
                     visualizedPlates[i].SetPlateState(p);
                 }
             }
-            if (SensoManager.Instance.playerPresent)
+            if (SensoManager.Instance.PlayerPresent)
             {
                 centerOfGravity.SetActive(true);
                 //Debug.Log("cog before=" + cog);
