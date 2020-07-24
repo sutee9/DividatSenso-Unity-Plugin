@@ -57,8 +57,28 @@ namespace Dividat {
             }
         }
 
-        public bool logging = false;
+        public bool logging = true;
+        
+        
+        
+        
         [Header("Current Status (Visualization Only, do not Edit)")]
+        [SerializeField]
+        private bool _ready = false;
+        public bool Ready {
+            get { return _ready; }
+        }
+        public bool Suspended {
+            get { return _suspended; }
+        }
+        [SerializeField]
+        private bool _suspended = false;
+
+        public bool Ended {
+            get { return _ended; }
+        }
+        [SerializeField]
+        private bool _ended = false;
         public bool jump = false;
 
         //How long has the player been off the plate/force below jump threshold?
@@ -204,9 +224,9 @@ namespace Dividat {
 
         protected void Start(){
             // Register hooks with platform interface
-            Debug.Log("Start");
+            Debug.Log("[SensoManager] Start");
             Play.Init(this);
-            logging = Debug.isDebugBuild;
+            //logging = Debug.isDebugBuild;
             _sensoCenter = sensoHardwareConfiguration.upperLeftCorner + sensoHardwareConfiguration.Dimensions/2f;
             _cog = _lastValidCog = _simulatedCog = Vector2.zero;
         }
@@ -219,6 +239,10 @@ namespace Dividat {
             //Check Activity Timeouts and if Player Present
             if (_totalForce > playerPresenceForceThreshold){
                 lastActivity = Time.time;
+            }
+            else {
+                //if noone is there, reset the center of gravity
+                _cog = Vector2.zero;
             }
             _playerPresent = Time.time - lastActivity < activityTimeout;
             if (_playerPresent != _playerPresentLast){
@@ -328,6 +352,7 @@ namespace Dividat {
                 _cog = 1 / weight * cog - _sensoCenter; //adjust so center is 0,0
             }
             else {
+                
                 _cog = _lastValidCog;
             }
             _totalForce = weight;
@@ -335,13 +360,28 @@ namespace Dividat {
         #endregion Unity Boilerplate
 
         #region Process Senso Events
+        public void Finish(Metrics metrics){
+            _ready = false;
+            _ended = true;
+            Play.Finish(metrics);
+        }
         public void OnHello(Settings settings)
         {
             if (logging) Debug.Log("[SensoManager] OnHello");
             if (logging) Debug.Log("Settings: " +JsonUtility.ToJson(settings));
             _settings = settings;
+            _ready = true;
             OnReady?.Invoke();
+            #if !UNITY_EDITOR
             Play.Ready();
+            #endif
+        }
+
+        [ContextMenu("OnHello")]
+        public void UnittestOnHello(){
+            Settings s = new Settings();
+            s.Add("duration", new Setting.Time(120000));
+            OnHello(s);
         }
 
         public void OnPing()
@@ -352,12 +392,14 @@ namespace Dividat {
 
         public void OnSuspend()
         {
+            _suspended = true;
             if (logging) Debug.Log("[SensoManager] OnSuspend. Subscribe to OnSuspended event for alerts.");
             OnSuspended?.Invoke();
         }
 
         public void OnResume()
         {
+            _suspended = false;
             if (logging) Debug.Log("[SensoManager] OnResume");
             OnResumed?.Invoke();
         }

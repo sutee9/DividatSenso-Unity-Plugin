@@ -20,6 +20,7 @@ namespace Dividat
             {
                 Play.gameController = gameController;
                 Play.Wire();
+                Debug.Log("Dividat.Play is now wired");
             }
             else
             {
@@ -68,9 +69,12 @@ namespace Dividat
             if (gameController != null)
             {
                 string settings = Marshal.PtrToStringAuto(ptr);
+                Debug.Log("play settings");
                 gameController.OnHello(Settings.FromString(settings));
             }
-
+            else {
+                Debug.Log("No Game Controller was set up");
+            }
         }
 
         [MonoPInvokeCallback(typeof(PingCallback))]
