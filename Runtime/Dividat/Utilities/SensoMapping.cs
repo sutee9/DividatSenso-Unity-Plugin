@@ -15,17 +15,33 @@ namespace Dividat
         public Vector3 upperLeftCorner;
         public Vector3 xDimensionRange;
         public Vector3 yDimensionRange;
+        public Vector3 offset = Vector3.zero;
 
         [Header("Senso Configuration to be Used")]
         [Tooltip("Leave Empty for the configuration defined in Senso Manager.")]
         public SensoHardwareConfiguration hardwareConfiguration;
+
+        private SensoManager _sm;
         public Vector3 GetMappedCoordinates(Vector2 sensoCoordinates)
         {
-            if (hardwareConfiguration == null)
-            {
-                hardwareConfiguration = SensoManager.Instance.sensoHardwareConfiguration;
+            if (_sm != null){
+                return GetMapped(sensoCoordinates);
             }
-            return xDimensionRange * (sensoCoordinates.x / hardwareConfiguration.Dimensions.x) + yDimensionRange * (sensoCoordinates.y / hardwareConfiguration.Dimensions.y);
+            else if (_sm == null && SensoManager.Instance != null){
+                _sm = SensoManager.Instance;
+                if (hardwareConfiguration == null)
+                {
+                    hardwareConfiguration = _sm.sensoHardwareConfiguration;
+                }
+                return GetMapped(sensoCoordinates);
+            }
+            else {
+                return Vector3.zero + offset;
+            }
+        }
+
+        private Vector3 GetMapped(Vector2 sensoCoordinates){
+            return xDimensionRange * (sensoCoordinates.x / hardwareConfiguration.Dimensions.x) + yDimensionRange * (sensoCoordinates.y / hardwareConfiguration.Dimensions.y) + offset;
         }
     }
 }
