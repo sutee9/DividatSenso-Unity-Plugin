@@ -55,8 +55,10 @@ namespace Dividat
         {
             if (pattern.GetPreset() != null)
             {
-                #if UNITY_WEBGL
+                #if UNITY_WEBGL && !UNITY_EDITOR
                 SendMotorPreset(pattern.GetPreset());
+                #else 
+                Debug.LogWarning("Warning: MotorPattern="+pattern.GetPreset()+" received, but motor patterns are not supported on this platform.");
                 #endif
             }
         }
