@@ -206,7 +206,7 @@ namespace Dividat {
             //Check the singleton is unique
             if ( _instance == null )
             {
-                Debug.Log("Hello");
+                //Debug.Log("Hello");
                 _instance = SensoManager.Instance;
 
                 //Set up the Hardware configuration
