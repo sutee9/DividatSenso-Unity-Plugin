@@ -41,13 +41,13 @@ namespace Dividat.TouchRail {
                 string railRaw = _arduino.LastLine;
                 if (railRaw != null && railRaw != ""){
                     string[] values = railRaw.Split(',');
-                    if (values.Length != 8){
+                    if (values.Length != 6){
                         Debug.Log(values.Length);
                     }
                     else {
                         _lastUpdatedFrame = Time.frameCount;
 
-                        for (int i=2; i < values.Length; i++){
+                        for (int i=0; i < values.Length; i++){
                             float pressureValue = float.Parse(values[i]);
                             if (pressureValue > thresholdPressed){
                                 touchZones[i-2].transform.localScale = new Vector3(0.20f, 0.75f, 0.20f);
