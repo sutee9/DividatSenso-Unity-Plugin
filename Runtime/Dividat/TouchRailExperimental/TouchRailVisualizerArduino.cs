@@ -7,7 +7,7 @@ using System.IO.Ports;
 #endif
 
 namespace Dividat.TouchRail {
-    public class TouchRail : MonoBehaviour
+    public class TouchRailVisualizerArduino : MonoBehaviour
     {
         [Header("Touch Rail Behaviour and Connection")]
         public string comPort = "/dev/tty.usbmodem14101";

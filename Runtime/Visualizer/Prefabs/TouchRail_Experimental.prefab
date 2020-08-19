@@ -291,9 +291,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2595345896899571665}
-  - component: {fileID: 2595345896899571664}
+  - component: {fileID: 1209681375}
   m_Layer: 0
-  m_Name: TouchRail
+  m_Name: TouchRail_Experimental
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -306,7 +306,7 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2595345896899571666}
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: -4.48, y: 2.1000001, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
@@ -322,7 +322,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2595345896899571664
+--- !u!114 &1209681375
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -331,19 +331,19 @@ MonoBehaviour:
   m_GameObject: {fileID: 2595345896899571666}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8b33110fcb1ef431eb97eadc973fe6c7, type: 3}
+  m_Script: {fileID: 11500000, guid: 919877a07dd8c498f83ecf9107b5c5de, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  comPort: /dev/tty.usbmodem14101
-  thresholdTouched: 30
-  thresholdPressed: 200
+  side: 0
   touchZones:
   - {fileID: 2595345897399484144}
+  - {fileID: 2595345896965145156}
+  - {fileID: 2595345896312268867}
+  - {fileID: 2595345896844187598}
   - {fileID: 2595345898249540482}
   - {fileID: 2595345897754145907}
-  - {fileID: 2595345896312268867}
-  - {fileID: 2595345896965145156}
-  - {fileID: 2595345896844187598}
+  thresholdPressed: 0.5
+  thresholdTouched: 0.2
 --- !u!1 &2595345896965145156
 GameObject:
   m_ObjectHideFlags: 0
