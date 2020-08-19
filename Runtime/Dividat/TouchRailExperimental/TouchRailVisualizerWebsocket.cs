@@ -5,7 +5,6 @@ using UnityEngine;
 
 using NativeWebSocket;
 
-[RequireComponent(typeof(TouchRailConnectionWebsocket))]
 public class TouchRailVisualizerWebsocket : MonoBehaviour
 {
     public enum Side {left, right}
@@ -18,21 +17,23 @@ public class TouchRailVisualizerWebsocket : MonoBehaviour
     [Range(0f, 1f)]
     public float thresholdTouched = 0.2f;
 
-    private TouchRailConnectionWebsocket _input;
+    public TouchRailConnectionWebsocket touchRailConnection;
 
     // Start is called before the first frame update
     void Awake()
     {
-        _input = GetComponent<TouchRailConnectionWebsocket>();
+        if (touchRailConnection == null){
+          Debug.LogError("TouchRailVisualizer: Missing TouchRailConnectionWebsocket. Please assign.");
+        }
     }
 
     void Update(){
         float[] inputValues = null;
         if (side == Side.left){
-            inputValues = _input.LeftValues;
+            inputValues = touchRailConnection.LeftValues;
         }
         else {
-            inputValues = _input.RightValues;
+            inputValues = touchRailConnection.RightValues;
         }
         for (int i=0; i < inputValues.Length; i++){
             float pressureValue = inputValues[i];

@@ -10,7 +10,7 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
     WebSocket _websocket;
     int _lastUpdatedFrame = 0;
     [Header("Network Configuration")]
-    public string serverURL = "ws://echo.websocket.org";
+    public string serverURL = "ws://localhost:54535";
     public bool connectAtStartup;
     public bool automaticReconnect = true;
     [Range(0.2f, 10f)]
@@ -93,8 +93,19 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
                         _leftValues[i] = pressureValue;
                     } 
                 }
+                else if (values != null && values.Length == 12){
+                    for (int i=0; i < values.Length; i++){
+                        float pressureValue = float.Parse(values[i]);
+                        if (i < 6){
+                            _leftValues[i] = pressureValue;
+                        }
+                        else {
+                            _rightValues[i] = pressureValue;
+                        }
+                    } 
+                }
                 else {
-                    Debug.LogWarning("Received Invalid Message. Should contain 6 values. Message="+message);
+                    Debug.LogWarning("Received Invalid Message. Should contain 6 or 12 values. Message="+message);
                 }
             }
             _retryTimer = 0f;
