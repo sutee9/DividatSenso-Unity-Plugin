@@ -80,9 +80,11 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
         _websocket.OnMessage += (bytes) =>
         {
             if (Time.frameCount != _lastUpdatedFrame){
+                
                 _lastUpdatedFrame = Time.frameCount;
                 // Reading a plain text message
                 var message = System.Text.Encoding.UTF8.GetString(bytes);
+                Debug.Log(message);
                 string msg = message.Remove(0, 1);
                 msg = msg.Remove(msg.Length-1, 1);
                 string[] values = msg.Split(',');
@@ -100,7 +102,7 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
                             _leftValues[i] = pressureValue;
                         }
                         else {
-                            _rightValues[i] = pressureValue;
+                            _rightValues[i-6] = pressureValue;
                         }
                     } 
                 }
@@ -123,7 +125,7 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
             //Debug.Log("Not Connected " + _retryTimer);
             _retryTimer += Time.deltaTime;
             if (_retryTimer >= retryEvery){
-                Debug.Log("[TouchRailConnectionWebsocket] "+ Time.time + ", Trying Reconnect");
+                Debug.Log("[TouchRailConnectionWebsocket] Trying Reconnect");
                 _retryTimer=0f;
                 _websocket.Connect();
             }
