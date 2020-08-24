@@ -148,14 +148,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   side: 1
   touchZones:
-  - {fileID: 4682126103750787264}
-  - {fileID: 4682126102507109492}
-  - {fileID: 4682126102658864755}
-  - {fileID: 4682126102126094846}
-  - {fileID: 4682126103388319154}
   - {fileID: 4682126103295429187}
-  thresholdPressed: 0.5
-  thresholdTouched: 0.2
+  - {fileID: 4682126103388319154}
+  - {fileID: 4682126102126094846}
+  - {fileID: 4682126102658864755}
+  - {fileID: 4682126102507109492}
+  - {fileID: 4682126103750787264}
+  thresholdPressed: 0.3
+  thresholdTouched: 0.1
   touchRailConnection: {fileID: 7277471431514896555}
 --- !u!1 &4682126102126094846
 GameObject:
@@ -681,14 +681,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   side: 0
   touchZones:
-  - {fileID: 4682126103109087481}
-  - {fileID: 4682126103006268493}
-  - {fileID: 4682126102017091146}
-  - {fileID: 4682126102549731783}
-  - {fileID: 4682126103971339659}
   - {fileID: 4682126103794612858}
-  thresholdPressed: 0.5
-  thresholdTouched: 0.2
+  - {fileID: 4682126103971339659}
+  - {fileID: 4682126102549731783}
+  - {fileID: 4682126102017091146}
+  - {fileID: 4682126103006268493}
+  - {fileID: 4682126103109087481}
+  thresholdPressed: 0.3
+  thresholdTouched: 0.1
   touchRailConnection: {fileID: 7277471431514896555}
 --- !u!1 &4682126102951618804
 GameObject:
