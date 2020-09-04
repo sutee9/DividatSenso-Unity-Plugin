@@ -23,7 +23,11 @@ namespace Dividat {
         [Tooltip("If there is less weight on Senso than this threshold, it is considered that no person is present. If there is no person present for more than activityTimeout, then personPresent becomes false.")]
         public float playerPresenceForceThreshold = 0.05f;
         [Tooltip("How many seconds without input above playerPresenceForceThreshold before personPresent becomes false.")]
-        public float activityTimeout = 10f; 
+        public float activityTimeout = 10f;
+
+		[Tooltip("Filter shakyness of center of gravity movement.")]
+		[Range(0f, 0.95f)]
+		public float CenterOfGravityFilterStrength = 0.2f;
 
         [Header("Key Input Simulation")]
         [Tooltip("If StepPlate, pressing the left/right/up/down/space key will trigger a step on the relative plate. If CenterOfGravity, a simulated point-sized player will move around on the Senso. Use the second setting for balancing games or absolute position. In most cases, use StepPlates however.")]
@@ -349,7 +353,7 @@ namespace Dividat {
             }
             if (Mathf.Abs(weight) > playerPresenceForceThreshold)
             {
-                _cog = 1 / weight * cog - _sensoCenter; //adjust so center is 0,0
+				_cog = Vector3.Lerp(_lastValidCog, 1 / weight * cog - _sensoCenter, 1 - CenterOfGravityFilterStrength); //adjust so center is 0,0
             }
             else {
                 
