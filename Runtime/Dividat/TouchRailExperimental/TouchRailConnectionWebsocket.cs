@@ -10,7 +10,7 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
     WebSocket _websocket;
     int _lastUpdatedFrame = 0;
     [Header("Network Configuration")]
-    public string serverURL = "ws://localhost:54535";
+    public string serverURL = "ws://localhost:8080";
     public bool connectAtStartup;
     public bool automaticReconnect = true;
     [Range(0.2f, 10f)]
