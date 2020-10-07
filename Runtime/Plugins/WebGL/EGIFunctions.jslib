@@ -11,7 +11,7 @@ var EGIFunctions = {
 
       PlayEGI.onSignal(function (signal) {
         if (signal.type === 'Hello' && self.onHello != null) {
-          Runtime.dynCall('vi', self.onHello, [self._stringToPtr(JSON.stringify(signal.settings))]);
+          Runtime.dynCall('vii', self.onHello, [self._stringToPtr(JSON.stringify(signal.settings)), self._stringToPtr(JSON.stringify(signal.memory || null))]);
         } else if (signal.type === 'Ping' && self.onPing != null) {
           Runtime.dynCall('v', self.onPing, []);
         } else if (signal.type === 'Suspend' && self.onSuspend != null) {
@@ -68,8 +68,8 @@ var EGIFunctions = {
   Pong: function() {
     PlayEGI.pong();
   },
-  UnmarshalFinish: function(strPtr) {
-    PlayEGI.finish(JSON.parse(Pointer_stringify(strPtr)));
+  UnmarshalFinish: function(strPtrMetrics, strPtrMemory) {
+    PlayEGI.finish(JSON.parse(Pointer_stringify(strPtrMetrics)), JSON.parse(Pointer_stringify(strPtrMemory)));
   },
   SendMotorPreset: function(keywordPtr) {
     PlayEGI.motor(Pointer_stringify(keywordPtr));

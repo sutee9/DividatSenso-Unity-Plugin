@@ -35,12 +35,17 @@ namespace Dividat
         public static extern void Pong();
 
         [DllImport("__Internal")]
-        public static extern void UnmarshalFinish(string jsonString);
+        public static extern void UnmarshalFinish(string jsonString, string memoryString);
 
         public static void Finish(Metrics metrics)
         {
+            Finish(metrics, JSONNull.CreateOrGet());
+        }
+
+        public static void Finish(Metrics metrics, JSONNode memory)
+        {
             #if !UNITY_EDITOR
-            UnmarshalFinish(metrics.toJSONString());
+            UnmarshalFinish(metrics.toJSONString(), memory.ToString());
             #endif
         }
 
@@ -58,19 +63,20 @@ namespace Dividat
         [DllImport("__Internal")]
         private static extern void RegisterPlumbing(HelloCallback onHello, PingCallback onPing, SuspendCallback onSuspend, ResumeCallback onResume);
 
-        public delegate void HelloCallback(System.IntPtr ptr);
+        public delegate void HelloCallback(System.IntPtr settingsPtr, System.IntPtr memoryPtr);
         public delegate void PingCallback();
         public delegate void SuspendCallback();
         public delegate void ResumeCallback();
 
         [MonoPInvokeCallback(typeof(HelloCallback))]
-        private static void OnHello(System.IntPtr ptr)
+        private static void OnHello(System.IntPtr settingsPtr, System.IntPtr memoryPtr)
         {
             if (gameController != null)
             {
-                string settings = Marshal.PtrToStringAuto(ptr);
+                string settings = Marshal.PtrToStringAuto(settingsPtr);
+                string memory = Marshal.PtrToStringAuto(memoryPtr);
                 Debug.Log("play settings");
-                gameController.OnHello(Settings.FromString(settings));
+                gameController.OnHello(Settings.FromString(settings), JSON.Parse(memory));
             }
             else {
                 Debug.Log("No Game Controller was set up");

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Dividat;
+using SimpleJSON;
 
 ///<summary>Senso Manager summarizes all access to the Senso platform. You do not normally need to access
 ///the hardware and service representations <code>Dividat.Hardware</code> and <code>Dividat.Software</code>.
@@ -125,6 +126,13 @@ namespace Dividat {
                 return _settings;
             }
         }
+
+        //The Memory blob as received from Dividat Play.
+        public JSONNode Memory {
+            get {
+                return _memory;
+            }
+        }
         #endregion Properties
 
         //Senso Play Updates / Application Status
@@ -149,6 +157,7 @@ namespace Dividat {
         //Private Config Vars
         private static SensoManager _instance;
         private Settings _settings;
+        private JSONNode _memory;
         private Vector2 _sensoCenter;
 
         //Private movement-related vars
@@ -367,13 +376,20 @@ namespace Dividat {
         public void Finish(Metrics metrics){
             _ready = false;
             _ended = true;
-            Play.Finish(metrics);
+            Play.Finish(metrics, JSONNull.CreateOrGet());
         }
-        public void OnHello(Settings settings)
+        public void Finish(Metrics metrics, JSONNode memory){
+            _ready = false;
+            _ended = true;
+            Play.Finish(metrics, memory);
+        }
+        public void OnHello(Settings settings, JSONNode memory)
         {
             if (logging) Debug.Log("[SensoManager] OnHello");
             if (logging) Debug.Log("Settings: " +JsonUtility.ToJson(settings));
+            if (logging) Debug.Log("Memory: " +memory);
             _settings = settings;
+            _memory = memory;
             _ready = true;
             OnReady?.Invoke();
             #if !UNITY_EDITOR
@@ -385,7 +401,7 @@ namespace Dividat {
         public void UnittestOnHello(){
             Settings s = new Settings();
             s.Add("duration", new Setting.Time(120000));
-            OnHello(s);
+            OnHello(s, JSONNull.CreateOrGet());
         }
 
         public void OnPing()
