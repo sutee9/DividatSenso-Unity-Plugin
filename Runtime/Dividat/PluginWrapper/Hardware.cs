@@ -68,7 +68,7 @@ namespace Dividat
             #if UNITY_WEBGL && !UNITY_EDITOR
             Register(OnStep, OnRelease, OnSensoState);
             #else
-            Debug.LogWarning("SENSO Hardware is not supported on this platform. Plates can be simulated with LEFT, RIGHT, UP, DOWN arrows and SPACE key");
+            WebsocketAvatar.Register(OnStep, OnRelease, OnSensoState);
             #endif
         }
 
@@ -107,18 +107,8 @@ namespace Dividat
         #endregion
 
         #region EGIBridge
-        #if UNITY_WEBGL
-        // Implementation of Bridge to EGI
-        // Based on ideas from https://forum.unity.com/threads/c-jslib-2-way-communication.323629/#post-2100593
-
         public delegate void DirectionCallback(int direction);
         public delegate void PlateCallback(int direction, float x, float y, float f);
-
-        [DllImport("__Internal")]
-        private static extern void Register(DirectionCallback onStep, DirectionCallback onRelease, PlateCallback onSensoState);
-
-        [DllImport("__Internal")]
-        private static extern void SendMotorPreset(string keyword);
 
         private static void SetPlateState(int direction, float x, float y, float f)
         {
@@ -126,8 +116,6 @@ namespace Dividat
             plates[direction].y = y;
             plates[direction].f = f;
         }
-
-
 
         [MonoPInvokeCallback(typeof(DirectionCallback))]
         private static void OnStep(int direction)
@@ -146,6 +134,16 @@ namespace Dividat
         {
             SetPlateState(direction, x, y, f);
         }
+        #if UNITY_WEBGL
+        // Implementation of Bridge to EGI
+        // Based on ideas from https://forum.unity.com/threads/c-jslib-2-way-communication.323629/#post-2100593
+
+        [DllImport("__Internal")]
+        private static extern void Register(DirectionCallback onStep, DirectionCallback onRelease, PlateCallback onSensoState);
+
+        [DllImport("__Internal")]
+        private static extern void SendMotorPreset(string keyword);
+        #else
         #endif
         #endregion EGIBridge
     }
