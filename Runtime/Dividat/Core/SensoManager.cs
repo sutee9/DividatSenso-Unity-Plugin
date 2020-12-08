@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Dividat;
-using SimpleJSON;
 
 ///<summary>Senso Manager summarizes all access to the Senso platform. You do not normally need to access
 ///the hardware and service representations <code>Dividat.Hardware</code> and <code>Dividat.Software</code>.
@@ -128,7 +127,7 @@ namespace Dividat {
         }
 
         //The Memory blob as received from Dividat Play.
-        public JSONNode Memory {
+        public string Memory {
             get {
                 return _memory;
             }
@@ -157,7 +156,7 @@ namespace Dividat {
         //Private Config Vars
         private static SensoManager _instance;
         private Settings _settings;
-        private JSONNode _memory;
+        private string _memory;
         private Vector2 _sensoCenter;
 
         //Private movement-related vars
@@ -376,14 +375,14 @@ namespace Dividat {
         public void Finish(Metrics metrics){
             _ready = false;
             _ended = true;
-            Play.Finish(metrics, JSONNull.CreateOrGet());
+            Play.Finish(metrics, "null");
         }
-        public void Finish(Metrics metrics, JSONNode memory){
+        public void Finish(Metrics metrics, string memory){
             _ready = false;
             _ended = true;
             Play.Finish(metrics, memory);
         }
-        public void OnHello(Settings settings, JSONNode memory)
+        public void OnHello(Settings settings, string memory)
         {
             if (logging) Debug.Log("[SensoManager] OnHello");
             if (logging) Debug.Log("Settings: " +JsonUtility.ToJson(settings));
@@ -401,7 +400,7 @@ namespace Dividat {
         public void UnittestOnHello(){
             Settings s = new Settings();
             s.Add("duration", new Setting.Time(120000));
-            OnHello(s, JSONNull.CreateOrGet());
+            OnHello(s, "null");
         }
 
         public void OnPing()

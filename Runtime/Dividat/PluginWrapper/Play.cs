@@ -39,13 +39,13 @@ namespace Dividat
 
         public static void Finish(Metrics metrics)
         {
-            Finish(metrics, JSONNull.CreateOrGet());
+            Finish(metrics, "null");
         }
 
-        public static void Finish(Metrics metrics, JSONNode memory)
+        public static void Finish(Metrics metrics, string memory)
         {
             #if !UNITY_EDITOR
-            UnmarshalFinish(metrics.toJSONString(), memory.ToString());
+            UnmarshalFinish(metrics.toJSONString(), memory);
             #endif
         }
 
