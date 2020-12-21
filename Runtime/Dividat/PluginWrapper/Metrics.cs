@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using SimpleJSON;   
+using SimpleJSON;
 
 namespace Dividat {
     public abstract class Metric
