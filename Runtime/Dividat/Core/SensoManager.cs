@@ -179,6 +179,7 @@ namespace Dividat {
         private bool _playerPresentLast = false;
         #endregion Private Vars
 
+        #region Senso Interactions
         /**
          * Get the plate state. This includes the state of simulated key input.
          */
@@ -211,6 +212,13 @@ namespace Dividat {
         public void Vibrate(MotorPattern preset){
             Hardware.ActivateMotor(preset);   
         }
+
+        public void Store(string serializedMemory)
+        {
+            _memory = serializedMemory;
+        }
+        #endregion
+
 
         #region Unity Boilerplate functions
         protected void Awake ()
@@ -375,13 +383,17 @@ namespace Dividat {
         public void Finish(Metrics metrics){
             _ready = false;
             _ended = true;
-            Play.Finish(metrics, "null");
+            Play.Finish(metrics, _memory);
         }
+        /**
+         *  Finish will cause Play to Terminate the application. 
+         */ 
         public void Finish(Metrics metrics, string memory){
             _ready = false;
             _ended = true;
             Play.Finish(metrics, memory);
         }
+
         public void OnHello(Settings settings, string memory)
         {
             if (logging) Debug.Log("[SensoManager] OnHello");

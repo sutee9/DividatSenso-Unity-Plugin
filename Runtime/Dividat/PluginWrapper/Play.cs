@@ -39,14 +39,17 @@ namespace Dividat
 
         public static void Finish(Metrics metrics)
         {
+            Debug.Log("Finish with Memory null");
             Finish(metrics, "null");
         }
 
         public static void Finish(Metrics metrics, string memory)
         {
-            #if !UNITY_EDITOR
+            Debug.Log("Finish with Memory " + memory);
+#if !UNITY_EDITOR
+            
             UnmarshalFinish(metrics.toJSONString(), memory);
-            #endif
+#endif
         }
 
         private static void Wire()
@@ -75,8 +78,8 @@ namespace Dividat
             {
                 string settings = Marshal.PtrToStringAuto(settingsPtr);
                 string memory = Marshal.PtrToStringAuto(memoryPtr);
-                Debug.Log("play settings");
-                gameController.OnHello(Settings.FromString(settings), JSON.Parse(memory));
+                Debug.Log("Play->On Hello: Received Data\nSettings Raw:\n" + settings + "\n\nMemory Raw:\n" + memory);
+                gameController.OnHello(Settings.FromString(settings), memory);
             }
             else {
                 Debug.Log("No Game Controller was set up");
