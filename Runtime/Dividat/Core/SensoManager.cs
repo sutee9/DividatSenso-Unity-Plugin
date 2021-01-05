@@ -226,7 +226,6 @@ namespace Dividat {
             //Check the singleton is unique
             if ( _instance == null )
             {
-                //Debug.Log("Hello");
                 _instance = SensoManager.Instance;
 
                 //Set up the Hardware configuration
@@ -243,10 +242,23 @@ namespace Dividat {
         }
 
         protected void Start(){
+            GameSaveExample gs = new GameSaveExample();
+            gs.gameSaveContent = "Hello";
+            gs.whatever = 58;
+            Debug.Log(gs.ToJson());
+            string json = gs.ToJson();
+
+            System.Type t = GameSaveBase.GetType(json);
+            if (t == typeof(GameSaveExample))
+            {
+                GameSaveExample loaded = (GameSaveExample)GameSaveExample.FromJson(json, t);
+                Debug.Log("reloaded=" + loaded.ToJson());
+            }
+
             // Register hooks with platform interface
             Debug.Log("[SensoManager] Start");
             Play.Init(this);
-            //logging = Debug.isDebugBuild;
+            logging = Debug.isDebugBuild;
             _sensoCenter = sensoHardwareConfiguration.upperLeftCorner + sensoHardwareConfiguration.Dimensions/2f;
             _cog = _lastValidCog = _simulatedCog = Vector2.zero;
         }
@@ -371,8 +383,7 @@ namespace Dividat {
             {
 				_cog = Vector3.Lerp(_lastValidCog, 1 / weight * cog - _sensoCenter, 1 - CenterOfGravityFilterStrength); //adjust so center is 0,0
             }
-            else {
-                
+            else { 
                 _cog = _lastValidCog;
             }
             _totalForce = weight;
@@ -381,9 +392,7 @@ namespace Dividat {
 
         #region Process Senso Events
         public void Finish(Metrics metrics){
-            _ready = false;
-            _ended = true;
-            Play.Finish(metrics, _memory);
+            Finish(metrics, _memory);
         }
         /**
          *  Finish will cause Play to Terminate the application. 
@@ -392,6 +401,9 @@ namespace Dividat {
             _ready = false;
             _ended = true;
             Play.Finish(metrics, memory);
+            #if UNITY_EDITOR
+
+            #endif
         }
 
         public void OnHello(Settings settings, string memory)
