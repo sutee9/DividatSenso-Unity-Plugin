@@ -47,10 +47,18 @@ MonoBehaviour:
   maxJumpTime: 1
   playerPresenceForceThreshold: 0.05
   activityTimeout: 10
-  keyInputType: 0
-  centerOfGravitySpeed: 3
-  jump: 0
-  playerPresent: 0
+  CenterOfGravityFilterStrength: 0.2
   sensoHardwareConfiguration: {fileID: 0}
+  logging: 1
+  keyInputType: 1
+  centerOfGravitySpeed: 3
+  saveFileName: DividatSaveGame.json
+  gameDuration: 10000
+  autoHelloOnStart: 1
+  _ready: 0
+  _suspended: 0
+  _ended: 0
+  jump: 0
   _plates: []
   _simulatedCog: {x: Infinity, y: Infinity}
+  _playerPresent: 0

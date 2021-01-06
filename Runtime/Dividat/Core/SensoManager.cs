@@ -1,7 +1,9 @@
 ﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Dividat;
+using System.IO;
 
 ///<summary>Senso Manager summarizes all access to the Senso platform. You do not normally need to access
 ///the hardware and service representations <code>Dividat.Hardware</code> and <code>Dividat.Software</code>.
@@ -28,12 +30,6 @@ namespace Dividat {
 		[Tooltip("Filter shakyness of center of gravity movement.")]
 		[Range(0f, 0.95f)]
 		public float CenterOfGravityFilterStrength = 0.2f;
-
-        [Header("Key Input Simulation")]
-        [Tooltip("If StepPlate, pressing the left/right/up/down/space key will trigger a step on the relative plate. If CenterOfGravity, a simulated point-sized player will move around on the Senso. Use the second setting for balancing games or absolute position. In most cases, use StepPlates however.")]
-        public SimulatedKeyInputType keyInputType = SimulatedKeyInputType.StepPlate;
-
-        public float centerOfGravitySpeed = 3f;
 
         [Header("Advanced Configuration")]
         [Tooltip("Allows to configure varying SensoSetups. Leave empty to get default setting.")]
@@ -62,10 +58,16 @@ namespace Dividat {
         }
 
         public bool logging = true;
-        
-        
-        
-        
+
+        [Header("Unity Editor Settings / Simulator")]
+        [Tooltip("If StepPlate, pressing the left/right/up/down/space key will trigger a step on the relative plate. If CenterOfGravity, a simulated point-sized player will move around on the Senso. Use the second setting for balancing games or absolute position. In most cases, use StepPlates however.")]
+        public SimulatedKeyInputType keyInputType = SimulatedKeyInputType.StepPlate;
+        public float centerOfGravitySpeed = 3f;
+        public string saveFileName = @"DividatSaveGame.json";
+        public int gameDuration = 1200000;
+        [Tooltip("autoHelloOnStart performs an OnHello when the game starts. It is necessary to activate this or to manually execute the OnHello from the context menu to load save files in the Editor. This setting has no effect in builds.")]
+        public bool autoHelloOnStart = true;
+
         [Header("Current Status (Visualization Only, do not Edit)")]
         [SerializeField]
         private bool _ready = false;
@@ -127,7 +129,7 @@ namespace Dividat {
         }
 
         //The Memory blob as received from Dividat Play.
-        public string Memory {
+        public GenericGameSave Memory {
             get {
                 return _memory;
             }
@@ -156,7 +158,7 @@ namespace Dividat {
         //Private Config Vars
         private static SensoManager _instance;
         private Settings _settings;
-        private string _memory;
+        private GenericGameSave _memory;
         private Vector2 _sensoCenter;
 
         //Private movement-related vars
@@ -213,10 +215,10 @@ namespace Dividat {
             Hardware.ActivateMotor(preset);   
         }
 
-        public void Store(string serializedMemory)
-        {
-            _memory = serializedMemory;
-        }
+        //public void Store(string serializedMemory)
+        //{
+        //    _memory = serializedMemory;
+        //}
         #endregion
 
 
@@ -226,7 +228,6 @@ namespace Dividat {
             //Check the singleton is unique
             if ( _instance == null )
             {
-                //Debug.Log("Hello");
                 _instance = SensoManager.Instance;
 
                 //Set up the Hardware configuration
@@ -246,7 +247,12 @@ namespace Dividat {
             // Register hooks with platform interface
             Debug.Log("[SensoManager] Start");
             Play.Init(this);
-            //logging = Debug.isDebugBuild;
+            if (autoHelloOnStart) {
+                #if UNITY_EDITOR
+                SimulatedOnHello();
+                #endif
+            }
+            logging = Debug.isDebugBuild;
             _sensoCenter = sensoHardwareConfiguration.upperLeftCorner + sensoHardwareConfiguration.Dimensions/2f;
             _cog = _lastValidCog = _simulatedCog = Vector2.zero;
         }
@@ -371,36 +377,49 @@ namespace Dividat {
             {
 				_cog = Vector3.Lerp(_lastValidCog, 1 / weight * cog - _sensoCenter, 1 - CenterOfGravityFilterStrength); //adjust so center is 0,0
             }
-            else {
-                
+            else { 
                 _cog = _lastValidCog;
             }
             _totalForce = weight;
         }
-        #endregion Unity Boilerplate
+#endregion Unity Boilerplate
 
-        #region Process Senso Events
+#region Process Senso Events
         public void Finish(Metrics metrics){
+            Finish(metrics, _memory);
+        }
+
+        protected void Finish(Metrics metrics, GenericGameSave memory)
+        {
             _ready = false;
             _ended = true;
-            Play.Finish(metrics, _memory);
+            #if !UNITY_EDITOR
+            Play.Finish(metrics, JsonUtility.ToJson(memory));
+            #else
+            File.WriteAllText(saveFileName, JsonUtility.ToJson(memory));
+            #endif
         }
+
         /**
          *  Finish will cause Play to Terminate the application. 
-         */ 
-        public void Finish(Metrics metrics, string memory){
-            _ready = false;
-            _ended = true;
-            Play.Finish(metrics, memory);
+         */
+        public void Finish(Metrics metrics, PlaySaveGame memory){
+            GenericGameSave save = GenericGameSave.Wrap(memory);
+            Finish(metrics, save);
         }
 
         public void OnHello(Settings settings, string memory)
         {
             if (logging) Debug.Log("[SensoManager] OnHello");
             if (logging) Debug.Log("Settings: " +JsonUtility.ToJson(settings));
-            if (logging) Debug.Log("Memory: " +memory);
+            if (logging) Debug.Log("Memory: " + memory);
             _settings = settings;
-            _memory = memory;
+            GenericGameSave save = null;
+            if (memory != null)
+            {
+                save = JsonUtility.FromJson<GenericGameSave>(memory);
+            }
+            _memory = save;
             _ready = true;
             OnReady?.Invoke();
             #if !UNITY_EDITOR
@@ -409,10 +428,17 @@ namespace Dividat {
         }
 
         [ContextMenu("OnHello")]
-        public void UnittestOnHello(){
+        public void SimulatedOnHello(){
+            Debug.Log("SimulatedOnHello");
             Settings s = new Settings();
-            s.Add("duration", new Setting.Time(120000));
-            OnHello(s, "null");
+            s.Add("duration", new Setting.Time(gameDuration));
+            string saveGameJSON ="";
+            if (File.Exists(saveFileName))
+            {
+                saveGameJSON = File.ReadAllText(saveFileName);
+                if (logging) Debug.Log("read: " + saveGameJSON);
+            }
+            OnHello(s, saveGameJSON);
         }
 
         public void OnPing()
@@ -434,9 +460,9 @@ namespace Dividat {
             if (logging) Debug.Log("[SensoManager] OnResume");
             OnResumed?.Invoke();
         }
-        #endregion Process Senso Events
+#endregion Process Senso Events
 
-        #region Simulation Support Functions
+#region Simulation Support Functions
         private static KeyCode DirectionToKey(Direction direction)
         {
             switch (direction)
@@ -493,6 +519,6 @@ namespace Dividat {
             }
         }
 
-        #endregion
+#endregion
     }
 }
