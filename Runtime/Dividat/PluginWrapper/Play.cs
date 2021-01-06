@@ -58,9 +58,9 @@ namespace Dividat
 
             Dividat.Hardware.Wire();
 
-#if UNITY_WEBGL && !UNITY_EDITOR
+            #if UNITY_WEBGL && !UNITY_EDITOR
             RegisterPlumbing(OnHello, OnPing, OnSuspend, OnResume);
-#endif
+            #endif
         }
 
         [DllImport("__Internal")]
@@ -80,6 +80,7 @@ namespace Dividat
                 string memory = Marshal.PtrToStringAuto(memoryPtr);
                 Debug.Log("Play->On Hello: Received Data\nSettings Raw:\n" + settings + "\n\nMemory Raw:\n" + memory);
                 gameController.OnHello(Settings.FromString(settings), memory);
+                Debug.Log("Play->On Hello: GameController called");
             }
             else {
                 Debug.Log("No Game Controller was set up");

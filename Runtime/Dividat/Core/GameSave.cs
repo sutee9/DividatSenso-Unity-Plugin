@@ -40,6 +40,11 @@ namespace Dividat {
         {
             return JsonUtility.FromJson(memoryContent, type);
         }
+
+        public T Instantiate<T>()
+        {
+            return JsonUtility.FromJson<T>(gameSaveContent);
+        }
     }
 
     public class GameSaveExample : GameSaveBase
