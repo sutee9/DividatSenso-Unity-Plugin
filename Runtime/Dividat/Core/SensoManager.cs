@@ -414,8 +414,11 @@ namespace Dividat {
             if (logging) Debug.Log("Settings: " +JsonUtility.ToJson(settings));
             if (logging) Debug.Log("Memory: " + memory);
             _settings = settings;
-            GenericGameSave save = JsonUtility.FromJson<GenericGameSave>(memory);
-            Debug.Log("save.type=" + save.type);
+            GenericGameSave save = null;
+            if (memory != null)
+            {
+                save = JsonUtility.FromJson<GenericGameSave>(memory);
+            }
             _memory = save;
             _ready = true;
             OnReady?.Invoke();
@@ -426,13 +429,14 @@ namespace Dividat {
 
         [ContextMenu("OnHello")]
         public void SimulatedOnHello(){
+            Debug.Log("SimulatedOnHello");
             Settings s = new Settings();
             s.Add("duration", new Setting.Time(gameDuration));
             string saveGameJSON ="";
             if (File.Exists(saveFileName))
             {
                 saveGameJSON = File.ReadAllText(saveFileName);
-                Debug.Log("read: " + saveGameJSON);
+                if (logging) Debug.Log("read: " + saveGameJSON);
             }
             OnHello(s, saveGameJSON);
         }

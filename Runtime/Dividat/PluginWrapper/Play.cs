@@ -79,6 +79,7 @@ namespace Dividat
                 string settings = Marshal.PtrToStringAuto(settingsPtr);
                 string memory = Marshal.PtrToStringAuto(memoryPtr);
                 Debug.Log("Play->On Hello: Received Data\nSettings Raw:\n" + settings + "\n\nMemory Raw:\n" + memory);
+                if (memory == "null") memory = null;
                 gameController.OnHello(Settings.FromString(settings), memory);
                 Debug.Log("Play->On Hello: GameController called");
             }

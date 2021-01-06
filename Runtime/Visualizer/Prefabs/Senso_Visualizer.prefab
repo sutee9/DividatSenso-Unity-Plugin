@@ -52,6 +52,7 @@ MonoBehaviour:
   - {fileID: 3998843704677991361}
   - {fileID: 3998843705156106928}
   centerOfGravity: {fileID: 3690274516016523406}
+  jumpYgroundedY: {x: 4, y: 1.8}
   basePlate: {fileID: 6421673324567097381}
   basePlate_Length: 9
   topLeftCorner: {x: 0, y: 0}
