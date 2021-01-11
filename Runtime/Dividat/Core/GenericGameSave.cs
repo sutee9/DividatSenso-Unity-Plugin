@@ -46,7 +46,8 @@ namespace Dividat {
             ass = Assembly.Load("Assembly-CSharp");
             Type t = ass.GetType(type); //Need to load the assembly from unity issue 664765
             #else
-            Type t = Type.GetType(type);
+            ass = Assembly.GetCallingAssembly();
+            Type t = ass.GetType(type);
             #endif
             
             if (t == null)
@@ -55,7 +56,7 @@ namespace Dividat {
                 Debug.LogError("ERROR in GenericGameSave->ParseGameSave: GenericGameSave's type attribute is \"" + type + "\"." +
                     " The assembly Assembly-CSharp did not contain any class of this type to parse the save game into. Please make " +
                     "sure that this type is present in your project and that it is compatible with the save game data that was " +
-                    "stored.");
+                    "stored. If you renamed the type, delete existing save files or fix it in the JSON.");
                 return false;
             }
 
@@ -76,15 +77,5 @@ namespace Dividat {
         {
             return new GenericGameSave(savegamePayload.GetType().ToString(), JsonUtility.ToJson(savegamePayload));
         }
-    }
-
-    /**
-     * Any and all save game data that should by serialized to the Dividat Backend must extend from this baseclass.
-     * 
-     * The version number attribute can be used to when upgrading the save game format, to be able to convert from an
-     * old to a new save game version. No functionality is implemented to deal with this feature, it is just used as a baseline to be able to do this.
-     */
-    public abstract class PlaySaveGame {
-        public int version = 1;
     }
 }

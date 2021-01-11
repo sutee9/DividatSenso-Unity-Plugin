@@ -239,7 +239,11 @@ namespace Dividat {
             }
             else
             {
-                Destroy ( gameObject );
+                if (FindObjectsOfType<SensoManager>().Length > 1)
+                {
+                    Destroy(gameObject);
+                }
+                
             }
         }
 

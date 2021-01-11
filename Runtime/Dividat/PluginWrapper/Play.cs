@@ -46,10 +46,9 @@ namespace Dividat
         public static void Finish(Metrics metrics, string memory)
         {
             Debug.Log("Finish with Memory " + memory);
-#if !UNITY_EDITOR
-            
+            #if !UNITY_EDITOR
             UnmarshalFinish(metrics.toJSONString(), memory);
-#endif
+            #endif
         }
 
         private static void Wire()
