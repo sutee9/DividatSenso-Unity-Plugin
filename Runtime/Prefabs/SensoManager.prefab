@@ -53,7 +53,7 @@ MonoBehaviour:
   keyInputType: 1
   centerOfGravitySpeed: 3
   saveFileName: DividatSaveGame.json
-  gameDuration: 10000
+  gameDuration: 120000
   autoHelloOnStart: 1
   _ready: 0
   _suspended: 0
