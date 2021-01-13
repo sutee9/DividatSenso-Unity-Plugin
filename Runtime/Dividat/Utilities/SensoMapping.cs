@@ -12,10 +12,14 @@ namespace Dividat
     public class SensoMapping : ScriptableObject
     {
         [Header("Target Coordinate Mapping")]
+        [Tooltip("Set to the coordinate which corresponds to the player standing the upper left corner on the senso. I.e. the position left of the screen at the edge of the senso that is parralel and closest to the screen.")]
         public Vector3 upperLeftCorner;
+        [Tooltip("Starting from the upper left corner, indicate the vector that would lead to the upper right corner, i.e. the position right of the screen at the edge of the senso that is parralel and closest to the screen.")]
         public Vector3 xDimensionRange;
+        [Tooltip("Starting from the upper left corner, indicate the vector that would lead to the Lower left corner, i.e. the position left of the screen at the edge of the senso that is parralel and farthest from the screen.")]
         public Vector3 yDimensionRange;
-        public Vector3 offset = Vector3.zero;
+        [Tooltip("You can add a flat offset to the mapping coordinates that will always be added. (optional)")]
+        public Vector3  offset = Vector3.zero;
 
         [Header("Senso Configuration to be Used")]
         [Tooltip("Leave Empty for the configuration defined in Senso Manager.")]
@@ -41,7 +45,8 @@ namespace Dividat
         }
 
         private Vector3 GetMapped(Vector2 sensoCoordinates){
-            return xDimensionRange * (sensoCoordinates.x / hardwareConfiguration.Dimensions.x) + yDimensionRange * (sensoCoordinates.y / hardwareConfiguration.Dimensions.y) + offset;
+            Debug.Log(sensoCoordinates);
+            return upperLeftCorner + xDimensionRange * ( (sensoCoordinates.x + hardwareConfiguration.Dimensions.x/2f) / hardwareConfiguration.Dimensions.x) + yDimensionRange * ( (sensoCoordinates.y + hardwareConfiguration.Dimensions.y/2f) / hardwareConfiguration.Dimensions.y) + offset;
         }
     }
 }

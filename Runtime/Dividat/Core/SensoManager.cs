@@ -258,7 +258,7 @@ namespace Dividat {
             }
             logging = Debug.isDebugBuild;
             _sensoCenter = sensoHardwareConfiguration.upperLeftCorner + sensoHardwareConfiguration.Dimensions/2f;
-            _cog = _lastValidCog = _simulatedCog = Vector2.zero;
+            _cog = _lastValidCog = _simulatedCog = _sensoCenter;
         }
 
         // Update is called once per frame
@@ -272,7 +272,7 @@ namespace Dividat {
             }
             else {
                 //if noone is there, reset the center of gravity
-                _cog = Vector2.zero;
+                _cog = _sensoCenter;
             }
             _playerPresent = Time.time - lastActivity < activityTimeout;
             if (_playerPresent != _playerPresentLast){
