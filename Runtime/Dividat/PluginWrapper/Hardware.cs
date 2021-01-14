@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters;
 using AOT;
 using UnityEngine;
 
@@ -26,7 +27,8 @@ namespace Dividat
         // private static int downChangedAt = Int32.MaxValue;
         // private static bool leftActive = false;
         // private static int leftChangedAt = Int32.MaxValue;
-        public static Plate[] Plates {
+        public static Plate[] Plates
+        {
             get { return plates; }
         }
         private static Plate[] plates = { new Plate(), new Plate(), new Plate(), new Plate(), new Plate() };
@@ -38,7 +40,7 @@ namespace Dividat
 
         public static bool GetRelease(Direction direction)
         {
-            return  (!GetActiveState(direction) && GetFrameCount(direction) == Time.frameCount - 1);
+            return (!GetActiveState(direction) && GetFrameCount(direction) == Time.frameCount - 1);
         }
 
         public static bool GetPlateActive(Direction direction)
@@ -55,21 +57,22 @@ namespace Dividat
         {
             if (pattern.GetPreset() != null)
             {
-                #if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL && !UNITY_EDITOR
                 SendMotorPreset(pattern.GetPreset());
-                #else 
-                Debug.LogWarning("Warning: MotorPattern="+pattern.GetPreset()+" received, but motor patterns are not supported on this platform.");
-                #endif
+#else
+                Debug.LogWarning("Warning: MotorPattern=" + pattern.GetPreset() + " received, but motor patterns are not supported on this platform.");
+#endif
             }
         }
 
         public static void Wire()
         {
-            #if UNITY_WEBGL && !UNITY_EDITOR
+#if UNITY_WEBGL && !UNITY_EDITOR
             Register(OnStep, OnRelease, OnSensoState);
-            #else
-            Debug.LogWarning("SENSO Hardware is not supported on this platform. Plates can be simulated with LEFT, RIGHT, UP, DOWN arrows and SPACE key");
-            #endif
+#elif UNITY_EDITOR
+            WebsocketAvatar.Instance.Register(OnStep, OnRelease, OnSensoState);
+            Debug.Log("Hardware->Wire complete.");
+#endif
         }
 
         #region Support Functions
@@ -107,18 +110,8 @@ namespace Dividat
         #endregion
 
         #region EGIBridge
-        #if UNITY_WEBGL
-        // Implementation of Bridge to EGI
-        // Based on ideas from https://forum.unity.com/threads/c-jslib-2-way-communication.323629/#post-2100593
-
         public delegate void DirectionCallback(int direction);
         public delegate void PlateCallback(int direction, float x, float y, float f);
-
-        [DllImport("__Internal")]
-        private static extern void Register(DirectionCallback onStep, DirectionCallback onRelease, PlateCallback onSensoState);
-
-        [DllImport("__Internal")]
-        private static extern void SendMotorPreset(string keyword);
 
         private static void SetPlateState(int direction, float x, float y, float f)
         {
@@ -126,8 +119,6 @@ namespace Dividat
             plates[direction].y = y;
             plates[direction].f = f;
         }
-
-
 
         [MonoPInvokeCallback(typeof(DirectionCallback))]
         private static void OnStep(int direction)
@@ -146,7 +137,17 @@ namespace Dividat
         {
             SetPlateState(direction, x, y, f);
         }
-        #endif
+#if UNITY_WEBGL
+        // Implementation of Bridge to EGI
+        // Based on ideas from https://forum.unity.com/threads/c-jslib-2-way-communication.323629/#post-2100593
+
+        [DllImport("__Internal")]
+        private static extern void Register(DirectionCallback onStep, DirectionCallback onRelease, PlateCallback onSensoState);
+
+        [DllImport("__Internal")]
+        private static extern void SendMotorPreset(string keyword);
+#else
+#endif
         #endregion EGIBridge
     }
 }

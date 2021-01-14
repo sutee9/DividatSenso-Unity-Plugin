@@ -14,7 +14,8 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
     public bool connectAtStartup;
     public bool automaticReconnect = true;
     [Range(0.2f, 10f)]
-    public float retryEvery = 2f;
+    public float retryEvery = 5f;
+    public bool logging = false;
 
     [Header("Visualization")]
     [SerializeField]
@@ -60,19 +61,19 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
 
         _websocket.OnOpen += () =>
         {
-            Debug.Log("Connection open!");
+            if (logging) Debug.Log("[TouchRailConnection->OnOpen] Connection open!");
             _connected = true;
 
         };
 
         _websocket.OnError += (e) =>
         {
-            Debug.Log("Error! " + e);
+            if (logging) Debug.LogError("[TouchRailConnection->OnOpen] Error! " + e);
         };
 
         _websocket.OnClose += (e) =>
         {
-            Debug.Log("Connection closed!");
+            if (logging) Debug.Log("[TouchRailConnection->OnClose] Connection closed!");
             _connected = false;
             _retryTimer = 0f;
         };
@@ -107,7 +108,7 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
                     } 
                 }
                 else {
-                    Debug.LogWarning("Received Invalid Message. Should contain 6 or 12 values. Message="+message);
+                    if (logging) Debug.LogWarning("[TouchRailConnection->OnMessage] Received Invalid Message. Should contain 6 or 12 values. Message=" + message);
                 }
             }
             _retryTimer = 0f;
