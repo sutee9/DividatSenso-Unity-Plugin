@@ -166,7 +166,8 @@ namespace Dividat {
         private Plate[] _plates;
         
         private float _totalForce = 0f;
-        
+
+        [SerializeField]
         private Vector2 _cog;
         private Vector2 _lastValidCog;
 
