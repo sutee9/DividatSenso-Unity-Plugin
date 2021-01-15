@@ -229,22 +229,23 @@ namespace Dividat {
             if ( _instance == null )
             {
                 _instance = SensoManager.Instance;
-
-                //Set up the Hardware configuration
-                if (_instance.sensoHardwareConfiguration == null){
-                    _instance.sensoHardwareConfiguration = SensoHardwareConfiguration.InstantiateStandardConfiguration();
-                }
-                _instance._plates = new Plate[Instance.sensoHardwareConfiguration.hardwarePlates.Length];
-                DontDestroyOnLoad ( gameObject );
             }
             else
             {
                 if (FindObjectsOfType<SensoManager>().Length > 1)
                 {
                     Destroy(gameObject);
+                    return;
                 }
-                
             }
+
+            //Set up the Hardware configuration
+            if (_instance.sensoHardwareConfiguration == null)
+            {
+                _instance.sensoHardwareConfiguration = SensoHardwareConfiguration.InstantiateStandardConfiguration();
+            }
+            _instance._plates = new Plate[Instance.sensoHardwareConfiguration.hardwarePlates.Length];
+            DontDestroyOnLoad(gameObject);
         }
 
         protected void Start(){
@@ -362,7 +363,8 @@ namespace Dividat {
                             _simulatedCog.y = sensoHardwareConfiguration.lowerRightCorner.y;
                         }
                         SensoPlateSetup targetPlate = sensoHardwareConfiguration.GetCorrespondingDirection(_simulatedCog);
-                        if (targetPlate != null){
+                        if (targetPlate != null)
+                        {
                             _plates[(int)targetPlate.direction] = new Plate(_simulatedCog.x, _simulatedCog.y, 0.25f);
                         }
                     }
