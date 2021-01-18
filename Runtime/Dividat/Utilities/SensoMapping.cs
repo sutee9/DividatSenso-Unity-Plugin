@@ -45,7 +45,7 @@ namespace Dividat
         }
 
         private Vector3 GetMapped(Vector2 sensoCoordinates){
-            Debug.Log(sensoCoordinates);
+           // Debug.Log(sensoCoordinates);
             return upperLeftCorner + xDimensionRange * ( (sensoCoordinates.x + hardwareConfiguration.Dimensions.x/2f) / hardwareConfiguration.Dimensions.x) + yDimensionRange * ( (sensoCoordinates.y + hardwareConfiguration.Dimensions.y/2f) / hardwareConfiguration.Dimensions.y) + offset;
         }
     }
