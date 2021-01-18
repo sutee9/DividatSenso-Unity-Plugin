@@ -54,25 +54,22 @@ namespace Dividat.Visualizer {
                 for (int i=0; i < visualizedPlates.Length; i++)
                 {
                     bool active = SensoManager.Instance.GetPlateActive((Direction)i);
-                    //Debug.Log(i + " is " + active);
                     visualizedPlates[i].SetPlateActiveState(active);
                     
                     Plate p = SensoManager.Instance.GetPlateState((Direction)i);
                     visualizedPlates[i].SetPlateState(p);
+                    //Debug.Log(p.x + "," + p.y + " " + p.active);
                 }
             }
             if (SensoManager.Instance.PlayerPresent)
             {
                 centerOfGravity.SetActive(true);
-                //Debug.Log("cog before=" + cog);
                 cog = SensoManager.Instance.CenterOfGravity;
-                //Debug.Log("cog now=" + cog);
                 centerOfGravity.transform.localPosition = new Vector3(
                     ((cog.x - topLeftCorner.x) / _range_x) * basePlate_Length,
                     SensoManager.Instance.jump ? jumpYgroundedY.x : jumpYgroundedY.y,
                     (-1) * (((cog.y - topLeftCorner.y) / _range_y) * basePlate_Length)
                 );
-                //Debug.Log("cog="+ cog.x + " topLeft " + topLeftCorner.x + " range " + _range_x);// * basePlate_Length - basePlate_Length/2f);
             }
             else
             {

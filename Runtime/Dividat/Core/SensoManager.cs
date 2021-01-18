@@ -117,7 +117,7 @@ namespace Dividat {
         //SensoHardwareConfiguration.  
         public Vector2 CenterOfGravity {
             get {
-                return _cog;
+                return _cog - _sensoCenter;
             }
         }
 
@@ -272,10 +272,10 @@ namespace Dividat {
             if (_totalForce > playerPresenceForceThreshold){
                 lastActivity = Time.time;
             }
-            else {
-                //if noone is there, reset the center of gravity
-                _cog = _sensoCenter;
-            }
+            //else {
+            //    //if noone is there, reset the center of gravity
+            //    _cog = _sensoCenter;
+            //}
             _playerPresent = Time.time - lastActivity < activityTimeout;
             if (_playerPresent != _playerPresentLast){
                 OnPlayerPresenceChanged?.Invoke(_playerPresent);
@@ -325,48 +325,61 @@ namespace Dividat {
             }
             
             bool keyInputDetected = false;
-            if (keyInputType == SimulatedKeyInputType.StepPlate){
-                foreach(Direction dir in dirs){
+            if (keyInputType == SimulatedKeyInputType.StepPlate)
+            {
+                foreach (Direction dir in dirs)
+                {
                     KeyCode key = DirectionToKey(dir);
-                    if (Input.GetKeyDown(key)){
-                        //Debug.Log("step " + dir);
+                    if (Input.GetKeyDown(key))
+                    {
+                        Debug.Log("step " + dir);
                         _plates[(int)dir] = GetSimulatedPlate(dir, true, true);
-                        keyInputDetected = true;  
+                        keyInputDetected = true;
                     }
-                    else if (Input.GetKeyUp(key)){
-                        //Debug.Log("release " + dir);
+                    else if (Input.GetKeyUp(key))
+                    {
+                        Debug.Log("release " + dir);
                         _plates[(int)dir] = GetSimulatedPlate(dir, false, true);
                         keyInputDetected = true;
                     }
-                    else if (Input.GetKey(key)){
-                        //Debug.Log("down " + dir); 
-                        _plates[(int)dir] = GetSimulatedPlate(dir, true, false); 
-                        keyInputDetected=true;
+                    else if (Input.GetKey(key))
+                    {
+                        Debug.Log("down " + dir);
+                        _plates[(int)dir] = GetSimulatedPlate(dir, true, false);
+                        keyInputDetected = true;
                     }
                 }
             }
-            else if (keyInputType == SimulatedKeyInputType.CenterOfGravity) {
-                foreach(Direction dir in dirs){
+            else if (keyInputType == SimulatedKeyInputType.CenterOfGravity)
+            {
+                foreach (Direction dir in dirs)
+                {
                     KeyCode key = DirectionToKey(dir);
-                    if (Input.GetKey(key)){
-                        keyInputDetected=true;
-                        _simulatedCog += Time.deltaTime*centerOfGravitySpeed*DirectionToVector(dir);
-                        if (_simulatedCog.x < sensoHardwareConfiguration.upperLeftCorner.x){
-                             _simulatedCog.x = sensoHardwareConfiguration.upperLeftCorner.x;
+                    if (Input.GetKey(key))
+                    {
+                        keyInputDetected = true;
+                        _simulatedCog += Time.deltaTime * centerOfGravitySpeed * DirectionToVector(dir);
+                        if (_simulatedCog.x < sensoHardwareConfiguration.upperLeftCorner.x)
+                        {
+                            _simulatedCog.x = sensoHardwareConfiguration.upperLeftCorner.x;
                         }
-                        else if (_simulatedCog.x > sensoHardwareConfiguration.lowerRightCorner.x){
+                        else if (_simulatedCog.x > sensoHardwareConfiguration.lowerRightCorner.x)
+                        {
                             _simulatedCog.x = sensoHardwareConfiguration.lowerRightCorner.x;
                         }
-                        if (_simulatedCog.y < sensoHardwareConfiguration.upperLeftCorner.y){
+                        if (_simulatedCog.y < sensoHardwareConfiguration.upperLeftCorner.y)
+                        {
                             _simulatedCog.y = sensoHardwareConfiguration.upperLeftCorner.y;
                         }
-                        else if (_simulatedCog.y > sensoHardwareConfiguration.lowerRightCorner.y){
+                        else if (_simulatedCog.y > sensoHardwareConfiguration.lowerRightCorner.y)
+                        {
                             _simulatedCog.y = sensoHardwareConfiguration.lowerRightCorner.y;
                         }
                         SensoPlateSetup targetPlate = sensoHardwareConfiguration.GetCorrespondingDirection(_simulatedCog);
                         if (targetPlate != null)
                         {
                             _plates[(int)targetPlate.direction] = new Plate(_simulatedCog.x, _simulatedCog.y, 0.25f);
+                            _plates[(int)targetPlate.direction].active = true;
                         }
                     }
                 }
@@ -382,16 +395,16 @@ namespace Dividat {
             }
             if (Mathf.Abs(weight) > playerPresenceForceThreshold)
             {
-				_cog = Vector3.Lerp(_lastValidCog, 1 / weight * cog - _sensoCenter, 1 - CenterOfGravityFilterStrength); //adjust so center is 0,0
+				_cog = Vector3.Lerp(_lastValidCog, 1 / weight * cog, 1 - CenterOfGravityFilterStrength); //adjust so center is 0,0
             }
             else { 
                 _cog = _lastValidCog;
             }
             _totalForce = weight;
         }
-#endregion Unity Boilerplate
+        #endregion Unity Boilerplate
 
-#region Process Senso Events
+        #region Process Senso Events
         public void Finish(Metrics metrics){
             Finish(metrics, _memory);
         }
