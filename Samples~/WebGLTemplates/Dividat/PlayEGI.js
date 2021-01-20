@@ -48,6 +48,7 @@
     }
 
     window.PlayEGI = {
+        send: sendCommand,
         ready: () => {
             sendCommand({ type: 'Ready' })
         },

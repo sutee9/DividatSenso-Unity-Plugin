@@ -21,22 +21,13 @@ var EGIFunctions = {
       return buffer;
     }
   },
-  Register: function(onStep, onRelease, onSensoState) {
-    EGIState.ensurePlumbing();
-  },
-  RegisterPlumbing: function(onSignal) {
+  Register: function(onSignal) {
     EGIState.onSignal = onSignal;
 
     EGIState.ensurePlumbing();
   },
-  Ready: function() {
-    PlayEGI.ready();
-  },
-  Pong: function() {
-    PlayEGI.pong();
-  },
-  UnmarshalFinish: function(strPtrMetrics, strPtrMemory) {
-    PlayEGI.finish(JSON.parse(Pointer_stringify(strPtrMetrics)), JSON.parse(Pointer_stringify(strPtrMemory)));
+  Command: function(strPtrCommand) {
+    PlayEGI.send(JSON.parse(Pointer_stringify(strPtrCommand)));
   },
   SendMotorPreset: function(keywordPtr) {
     PlayEGI.motor(Pointer_stringify(keywordPtr));

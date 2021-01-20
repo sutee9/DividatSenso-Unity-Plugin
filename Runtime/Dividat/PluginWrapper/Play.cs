@@ -29,13 +29,29 @@ namespace Dividat
         }
 
         [DllImport("__Internal")]
-        public static extern void Ready();
+        public static extern void Command(string jsonCommand);
 
-        [DllImport("__Internal")]
-        public static extern void Pong();
+        public static void Ready()
+        {
+            JSONObject cmd = new JSONObject();
+            cmd["type"] = "Ready";
+            Command(cmd.ToString());
+        }
 
-        [DllImport("__Internal")]
-        public static extern void UnmarshalFinish(string jsonString, string memoryString);
+        public static void Pong()
+        {
+            JSONObject cmd = new JSONObject();
+            cmd["type"] = "Pong";
+            Command(cmd.ToString());
+        }
+
+        public static void Log(string json)
+        {
+            JSONObject cmd = new JSONObject();
+            cmd["type"] = "Log";
+            cmd["entry"] = JSON.Parse(json);
+            Command(cmd.ToString());
+        }
 
         public static void Finish(Metrics metrics)
         {
@@ -47,7 +63,11 @@ namespace Dividat
         {
             Debug.Log("Finish with Memory " + memory);
             #if !UNITY_EDITOR
-            UnmarshalFinish(metrics.toJSONString(), memory);
+            JSONObject cmd = new JSONObject();
+            cmd["type"] = "Finish";
+            cmd["metrics"] = metrics.ToJSON();
+            cmd["memory"] = JSON.Parse(memory);
+            Command(cmd.ToString());
             #endif
         }
 
@@ -58,12 +78,12 @@ namespace Dividat
             Dividat.Hardware.Wire();
 
             #if UNITY_WEBGL && !UNITY_EDITOR
-            RegisterPlumbing(OnSignal);
+            Register(OnSignal);
             #endif
         }
 
         [DllImport("__Internal")]
-        private static extern void RegisterPlumbing(SignalCallback onSignal);
+        private static extern void Register(SignalCallback onSignal);
 
         public delegate void SignalCallback(System.IntPtr signalJsonPtr);
 
