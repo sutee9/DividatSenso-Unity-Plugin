@@ -5,6 +5,7 @@ using System.Net;
 
 namespace Dividat {
 
+#if UNITY_EDITOR
     class SensoEditorSettings : EditorWindow
     {
         static string companionRoomName = "";
@@ -91,5 +92,5 @@ namespace Dividat {
             + UnityEngine.Networking.UnityWebRequest.EscapeURL("{\"room\":{\"type\":\"String\",\"value\":\"" + companionRoomName + "\"}}");
         }
     }
-
+#endif
 }
