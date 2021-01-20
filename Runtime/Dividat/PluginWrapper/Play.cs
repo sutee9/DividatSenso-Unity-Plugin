@@ -74,14 +74,14 @@ namespace Dividat
             {
                 string jsonSignal = Marshal.PtrToStringAuto(signalJsonPtr);
                 Debug.Log("Play->On Signal: Received Signal\nJSON Raw:\n" + jsonSignal);
-                processSignal(jsonSignal);
+                ProcessSignal(jsonSignal);
             }
             else {
                 Debug.Log("No Game Controller was set up");
             }
         }
 
-        private static processSignal(string jsonString)
+        public static void ProcessSignal(string jsonString)
         {
             JSONNode json = JSON.Parse(jsonString);
 

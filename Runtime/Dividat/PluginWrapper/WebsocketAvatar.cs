@@ -28,10 +28,6 @@ namespace Dividat {
         private bool _connected = false;
         private float _retryTimer = 0f;
 
-        private event Hardware.DirectionCallback _onStep;
-        private event Hardware.DirectionCallback _onRelease;
-        private event Hardware.PlateCallback _onSensoState;
-
         public static WebsocketAvatar Instance
         {
             get
@@ -50,6 +46,10 @@ namespace Dividat {
             }
         }
         private static WebsocketAvatar _instance;
+
+        public void Register()
+        {
+        }
 
         protected void Awake()
         {
@@ -75,13 +75,6 @@ namespace Dividat {
         {
             Debug.Log("Starting EGI");
             Connect();
-        }
-
-        public void Register(Hardware.DirectionCallback onStep, Hardware.DirectionCallback onRelease, Hardware.PlateCallback onSensoState)
-        {
-            _onStep = onStep;
-            _onRelease = onRelease;
-            _onSensoState = onSensoState;
         }
 
         ///Note that the connection request is asynchronous. You can not expect values right away, but only after connected is true.
@@ -121,39 +114,8 @@ namespace Dividat {
             {
                 // Reading a plain text message
                 var message = System.Text.Encoding.UTF8.GetString(bytes);
-                var json = JSON.Parse(message);
 
-                switch (json["type"].Value)
-                {
-                    case "Step":
-                        _onStep(1);
-                        break;
-                    case "Release":
-                        _onRelease(1);
-                        break;
-                    case "SensoState":
-                        _onSensoState(0,
-                            json["state"]["center"]["x"].AsFloat,
-                            json["state"]["center"]["y"].AsFloat,
-                            json["state"]["center"]["f"].AsFloat);
-                        _onSensoState(1,
-                            json["state"]["up"]["x"].AsFloat,
-                            json["state"]["up"]["y"].AsFloat,
-                            json["state"]["up"]["f"].AsFloat);
-                        _onSensoState(2,
-                            json["state"]["right"]["x"].AsFloat,
-                            json["state"]["right"]["y"].AsFloat,
-                            json["state"]["right"]["f"].AsFloat);
-                        _onSensoState(3,
-                            json["state"]["down"]["x"].AsFloat,
-                            json["state"]["down"]["y"].AsFloat,
-                            json["state"]["down"]["f"].AsFloat);
-                        _onSensoState(4,
-                            json["state"]["left"]["x"].AsFloat,
-                            json["state"]["left"]["y"].AsFloat,
-                            json["state"]["left"]["f"].AsFloat);
-                        break;
-                }
+                Play.ProcessSignal(message);
 
                 _retryTimer = 0f;
             };
