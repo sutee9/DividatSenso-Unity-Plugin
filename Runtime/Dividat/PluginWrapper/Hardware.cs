@@ -68,7 +68,6 @@ namespace Dividat
         public static void Wire()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
-            Register(OnStep, OnRelease, OnSensoState);
 #elif UNITY_EDITOR
             WebsocketAvatar.Instance.Register(OnStep, OnRelease, OnSensoState);
             Debug.Log("Hardware->Wire complete.");
@@ -110,39 +109,31 @@ namespace Dividat
         #endregion
 
         #region EGIBridge
-        public delegate void DirectionCallback(int direction);
-        public delegate void PlateCallback(int direction, float x, float y, float f);
 
-        private static void SetPlateState(int direction, float x, float y, float f)
+        private static void SetPlateState(Direction direction, float x, float y, float f)
         {
-            plates[direction].x = x;
-            plates[direction].y = y;
-            plates[direction].f = f;
+            plates[(int)direction].x = x;
+            plates[(int)direction].y = y;
+            plates[(int)direction].f = f;
         }
 
-        [MonoPInvokeCallback(typeof(DirectionCallback))]
-        private static void OnStep(int direction)
+        public static void OnStep(Direction direction)
         {
-            SetActiveState((Direction)direction, true);
+            SetActiveState(direction, true);
         }
 
-        [MonoPInvokeCallback(typeof(DirectionCallback))]
-        private static void OnRelease(int direction)
+        public static void OnRelease(Direction direction)
         {
-            SetActiveState((Direction)direction, false);
+            SetActiveState(direction, false);
         }
 
-        [MonoPInvokeCallback(typeof(PlateCallback))]
-        private static void OnSensoState(int direction, float x, float y, float f)
+        public static void OnSensoState(Direction direction, float x, float y, float f)
         {
             SetPlateState(direction, x, y, f);
         }
 #if UNITY_WEBGL
         // Implementation of Bridge to EGI
         // Based on ideas from https://forum.unity.com/threads/c-jslib-2-way-communication.323629/#post-2100593
-
-        [DllImport("__Internal")]
-        private static extern void Register(DirectionCallback onStep, DirectionCallback onRelease, PlateCallback onSensoState);
 
         [DllImport("__Internal")]
         private static extern void SendMotorPreset(string keyword);

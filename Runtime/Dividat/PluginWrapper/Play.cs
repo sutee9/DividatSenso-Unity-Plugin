@@ -58,63 +58,66 @@ namespace Dividat
             Dividat.Hardware.Wire();
 
             #if UNITY_WEBGL && !UNITY_EDITOR
-            RegisterPlumbing(OnHello, OnPing, OnSuspend, OnResume);
+            RegisterPlumbing(OnSignal);
             #endif
         }
 
         [DllImport("__Internal")]
-        private static extern void RegisterPlumbing(HelloCallback onHello, PingCallback onPing, SuspendCallback onSuspend, ResumeCallback onResume);
+        private static extern void RegisterPlumbing(SignalCallback onSignal);
 
-        public delegate void HelloCallback(System.IntPtr settingsPtr, System.IntPtr memoryPtr);
-        public delegate void PingCallback();
-        public delegate void SuspendCallback();
-        public delegate void ResumeCallback();
+        public delegate void SignalCallback(System.IntPtr signalJsonPtr);
 
-        [MonoPInvokeCallback(typeof(HelloCallback))]
-        private static void OnHello(System.IntPtr settingsPtr, System.IntPtr memoryPtr)
+        [MonoPInvokeCallback(typeof(SignalCallback))]
+        private static void OnSignal(System.IntPtr signalJsonPtr)
         {
             if (gameController != null)
             {
-                string settings = Marshal.PtrToStringAuto(settingsPtr);
-                string memory = Marshal.PtrToStringAuto(memoryPtr);
-                Debug.Log("Play->On Hello: Received Data\nSettings Raw:\n" + settings + "\n\nMemory Raw:\n" + memory);
-                if (memory == "null") memory = null;
-                gameController.OnHello(Settings.FromString(settings), memory);
-                Debug.Log("Play->On Hello: GameController called");
+                string jsonSignal = Marshal.PtrToStringAuto(signalJsonPtr);
+                Debug.Log("Play->On Signal: Received Signal\nJSON Raw:\n" + jsonSignal);
+                processSignal(jsonSignal);
             }
             else {
                 Debug.Log("No Game Controller was set up");
             }
         }
 
-        [MonoPInvokeCallback(typeof(PingCallback))]
-        private static void OnPing()
+        private static processSignal(string jsonString)
         {
-            if (gameController != null)
-            {
-                gameController.OnPing();
-            }
+            JSONNode json = JSON.Parse(jsonString);
 
+            switch (json["type"].Value)
+            {
+                case "Hello":
+                    gameController.OnHello(Settings.FromString(json["settings"].Value), json["memory"].Value);
+                    break;
+                case "Ping":
+                    gameController.OnPing();
+                    break;
+                case "Suspend":
+                    gameController.OnSuspend();
+                    break;
+                case "Resume":
+                    gameController.OnResume();
+                    break;
+                case "Step":
+                    Hardware.OnStep(directionToString(json["direction"].Value));
+                    break;
+                case "Release":
+                    Hardware.OnRelease(directionToString(json["direction"].Value));
+                    break;
+                case "SensoState":
+                    foreach (var dir in json["state"].Keys)
+                    {
+                        JSONNode plate = json["state"][dir];
+                        Hardware.OnSensoState(directionToString(dir), plate["x"].AsFloat, plate["y"].AsFloat, plate["f"].AsFloat);
+                    }
+                    break;
+            }
         }
 
-        [MonoPInvokeCallback(typeof(SuspendCallback))]
-        private static void OnSuspend()
+        private static Direction directionToString(string dir)
         {
-            if (gameController != null)
-            {
-                gameController.OnSuspend();
-            }
-
-        }
-
-        [MonoPInvokeCallback(typeof(ResumeCallback))]
-        private static void OnResume()
-        {
-            if (gameController != null)
-            {
-                gameController.OnResume();
-            }
-
+            return (Direction)Enum.Parse(typeof(Direction), dir, true);
         }
 
     }
