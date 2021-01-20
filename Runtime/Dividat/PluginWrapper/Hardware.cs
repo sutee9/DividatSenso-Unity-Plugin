@@ -3,6 +3,7 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters;
 using AOT;
 using UnityEngine;
+using SimpleJSON;
 
 namespace Dividat
 {
@@ -58,7 +59,10 @@ namespace Dividat
             if (pattern.GetPreset() != null)
             {
 #if UNITY_WEBGL && !UNITY_EDITOR
-                SendMotorPreset(pattern.GetPreset());
+                JSONObject cmd = new JSONObject();
+                cmd["type"] = "Motor";
+                cmd["preset"] = pattern.GetPreset();
+                Play.Command(cmd.ToString());
 #else
                 Debug.LogWarning("Warning: MotorPattern=" + pattern.GetPreset() + " received, but motor patterns are not supported on this platform.");
 #endif
@@ -131,14 +135,7 @@ namespace Dividat
         {
             SetPlateState(direction, x, y, f);
         }
-#if UNITY_WEBGL
-        // Implementation of Bridge to EGI
-        // Based on ideas from https://forum.unity.com/threads/c-jslib-2-way-communication.323629/#post-2100593
 
-        [DllImport("__Internal")]
-        private static extern void SendMotorPreset(string keyword);
-#else
-#endif
         #endregion EGIBridge
     }
 }

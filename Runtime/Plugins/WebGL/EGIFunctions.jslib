@@ -28,9 +28,6 @@ var EGIFunctions = {
   },
   Command: function(strPtrCommand) {
     PlayEGI.send(JSON.parse(Pointer_stringify(strPtrCommand)));
-  },
-  SendMotorPreset: function(keywordPtr) {
-    PlayEGI.motor(Pointer_stringify(keywordPtr));
   }
 };
 

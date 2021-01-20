@@ -87,6 +87,8 @@ namespace Dividat
 
         public delegate void SignalCallback(System.IntPtr signalJsonPtr);
 
+        // Implementation of Bridge to EGI
+        // Based on ideas from https://forum.unity.com/threads/c-jslib-2-way-communication.323629/#post-2100593
         [MonoPInvokeCallback(typeof(SignalCallback))]
         private static void OnSignal(System.IntPtr signalJsonPtr)
         {
