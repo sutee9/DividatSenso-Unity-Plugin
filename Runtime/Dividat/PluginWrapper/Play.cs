@@ -29,13 +29,29 @@ namespace Dividat
         }
 
         [DllImport("__Internal")]
-        public static extern void Ready();
+        public static extern void Command(string jsonCommand);
 
-        [DllImport("__Internal")]
-        public static extern void Pong();
+        public static void Ready()
+        {
+            JSONObject cmd = new JSONObject();
+            cmd["type"] = "Ready";
+            Command(cmd.ToString());
+        }
 
-        [DllImport("__Internal")]
-        public static extern void UnmarshalFinish(string jsonString, string memoryString);
+        public static void Pong()
+        {
+            JSONObject cmd = new JSONObject();
+            cmd["type"] = "Pong";
+            Command(cmd.ToString());
+        }
+
+        public static void Log(string json)
+        {
+            JSONObject cmd = new JSONObject();
+            cmd["type"] = "Log";
+            cmd["entry"] = JSON.Parse(json);
+            Command(cmd.ToString());
+        }
 
         public static void Finish(Metrics metrics)
         {
@@ -47,7 +63,11 @@ namespace Dividat
         {
             Debug.Log("Finish with Memory " + memory);
             #if !UNITY_EDITOR
-            UnmarshalFinish(metrics.toJSONString(), memory);
+            JSONObject cmd = new JSONObject();
+            cmd["type"] = "Finish";
+            cmd["metrics"] = metrics.ToJSON();
+            cmd["memory"] = JSON.Parse(memory);
+            Command(cmd.ToString());
             #endif
         }
 
@@ -58,63 +78,68 @@ namespace Dividat
             Dividat.Hardware.Wire();
 
             #if UNITY_WEBGL && !UNITY_EDITOR
-            RegisterPlumbing(OnHello, OnPing, OnSuspend, OnResume);
+            Register(OnSignal);
             #endif
         }
 
         [DllImport("__Internal")]
-        private static extern void RegisterPlumbing(HelloCallback onHello, PingCallback onPing, SuspendCallback onSuspend, ResumeCallback onResume);
+        private static extern void Register(SignalCallback onSignal);
 
-        public delegate void HelloCallback(System.IntPtr settingsPtr, System.IntPtr memoryPtr);
-        public delegate void PingCallback();
-        public delegate void SuspendCallback();
-        public delegate void ResumeCallback();
+        public delegate void SignalCallback(System.IntPtr signalJsonPtr);
 
-        [MonoPInvokeCallback(typeof(HelloCallback))]
-        private static void OnHello(System.IntPtr settingsPtr, System.IntPtr memoryPtr)
+        // Implementation of Bridge to EGI
+        // Based on ideas from https://forum.unity.com/threads/c-jslib-2-way-communication.323629/#post-2100593
+        [MonoPInvokeCallback(typeof(SignalCallback))]
+        private static void OnSignal(System.IntPtr signalJsonPtr)
         {
             if (gameController != null)
             {
-                string settings = Marshal.PtrToStringAuto(settingsPtr);
-                string memory = Marshal.PtrToStringAuto(memoryPtr);
-                Debug.Log("Play->On Hello: Received Data\nSettings Raw:\n" + settings + "\n\nMemory Raw:\n" + memory);
-                if (memory == "null") memory = null;
-                gameController.OnHello(Settings.FromString(settings), memory);
-                Debug.Log("Play->On Hello: GameController called");
+                string jsonSignal = Marshal.PtrToStringAuto(signalJsonPtr);
+                Debug.Log("Play->On Signal: Received Signal\nJSON Raw:\n" + jsonSignal);
+                ProcessSignal(jsonSignal);
             }
             else {
                 Debug.Log("No Game Controller was set up");
             }
         }
 
-        [MonoPInvokeCallback(typeof(PingCallback))]
-        private static void OnPing()
+        public static void ProcessSignal(string jsonString)
         {
-            if (gameController != null)
-            {
-                gameController.OnPing();
-            }
+            JSONNode json = JSON.Parse(jsonString);
 
+            switch (json["type"].Value)
+            {
+                case "Hello":
+                    gameController.OnHello(Settings.FromString(json["settings"].Value), json["memory"].Value);
+                    break;
+                case "Ping":
+                    gameController.OnPing();
+                    break;
+                case "Suspend":
+                    gameController.OnSuspend();
+                    break;
+                case "Resume":
+                    gameController.OnResume();
+                    break;
+                case "Step":
+                    Hardware.OnStep(directionToString(json["direction"].Value));
+                    break;
+                case "Release":
+                    Hardware.OnRelease(directionToString(json["direction"].Value));
+                    break;
+                case "SensoState":
+                    foreach (var dir in json["state"].Keys)
+                    {
+                        JSONNode plate = json["state"][dir];
+                        Hardware.OnSensoState(directionToString(dir), plate["x"].AsFloat, plate["y"].AsFloat, plate["f"].AsFloat);
+                    }
+                    break;
+            }
         }
 
-        [MonoPInvokeCallback(typeof(SuspendCallback))]
-        private static void OnSuspend()
+        private static Direction directionToString(string dir)
         {
-            if (gameController != null)
-            {
-                gameController.OnSuspend();
-            }
-
-        }
-
-        [MonoPInvokeCallback(typeof(ResumeCallback))]
-        private static void OnResume()
-        {
-            if (gameController != null)
-            {
-                gameController.OnResume();
-            }
-
+            return (Direction)Enum.Parse(typeof(Direction), dir, true);
         }
 
     }
