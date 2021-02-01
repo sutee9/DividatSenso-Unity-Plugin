@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Dividat;
 using System.IO;
+using JetBrains.Annotations;
 
 ///<summary>Senso Manager summarizes all access to the Senso platform. You do not normally need to access
 ///the hardware and service representations <code>Dividat.Hardware</code> and <code>Dividat.Software</code>.
@@ -539,6 +540,84 @@ namespace Dividat {
             }
         }
 
-#endregion
+        #endregion
+
+        #region Utility Functions
+        /**
+         * Logs a message to the Dividat Play backend, which can be reviewed after the game session.
+         */
+        public void Log(string message)
+        {
+            Play.Log(JsonUtility.ToJson(LogEntry.Log(message)));
+        }
+        /**
+         * Logs a Warning to the Dividat Play backend, which can be reviewed after the game session.
+         */
+        public void LogWarning(string message)
+        {
+            Play.Log(JsonUtility.ToJson(LogEntry.LogWarning(message)));
+        }
+
+        /**
+         * Logs an Error  to the Dividat Play backend, which can be reviewed after the game session.
+         */
+        public void LogError(string message)
+        {
+            Play.Log(JsonUtility.ToJson(LogEntry.LogError(message)));
+        }
+        #endregion
+
+        [System.Serializable]
+        private class LogEntry
+        {
+            [SerializeField]
+            float time;
+            [SerializeField]
+            string message;
+            [SerializeField]
+            string type;
+
+            private LogEntry(int type, string log, float time)
+            {
+                switch (type)
+                {
+                    case 0:
+                        this.type = "l"; //Log 
+                        break;
+                    case 1:
+                        this.type = "w"; //Warning
+                        break;
+                    case 2:
+                        this.type = "e"; //Error
+                        break;
+                    default:
+                        this.type = "l";
+                        break;
+                }
+                this.message = log;
+                this.time = time;
+                
+            }
+
+            public static LogEntry Log(string message)
+            {
+                return new LogEntry(0, message, Time.time);
+            }
+
+            public static LogEntry LogError(string message)
+            {
+                return new LogEntry(2, message, Time.time);
+            }
+
+            public static LogEntry LogWarning(string message)
+            {
+                return new LogEntry(1, message, Time.time);
+            }
+
+            public string toString()
+            {
+                return type + ": [" + time + "] " + message;
+            }
+        }
     }
 }
