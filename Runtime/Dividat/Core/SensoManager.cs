@@ -333,19 +333,19 @@ namespace Dividat {
                     KeyCode key = DirectionToKey(dir);
                     if (Input.GetKeyDown(key))
                     {
-                        Debug.Log("step " + dir);
+                        if (logging) Debug.Log("step " + dir);
                         _plates[(int)dir] = GetSimulatedPlate(dir, true, true);
                         keyInputDetected = true;
                     }
                     else if (Input.GetKeyUp(key))
                     {
-                        Debug.Log("release " + dir);
+                        if (logging) Debug.Log("release " + dir);
                         _plates[(int)dir] = GetSimulatedPlate(dir, false, true);
                         keyInputDetected = true;
                     }
                     else if (Input.GetKey(key))
                     {
-                        Debug.Log("down " + dir);
+                        if (logging)  Debug.Log("down " + dir);
                         _plates[(int)dir] = GetSimulatedPlate(dir, true, false);
                         keyInputDetected = true;
                     }
