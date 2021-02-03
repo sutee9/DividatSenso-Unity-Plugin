@@ -259,7 +259,6 @@ namespace Dividat {
                 SimulatedOnHello();
                 #endif
             }
-            logging = Debug.isDebugBuild;
             _sensoCenter = sensoHardwareConfiguration.upperLeftCorner + sensoHardwareConfiguration.Dimensions/2f;
             _cog = _lastValidCog = _simulatedCog = _sensoCenter;
         }
