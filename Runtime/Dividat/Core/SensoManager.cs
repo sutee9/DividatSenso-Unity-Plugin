@@ -437,6 +437,7 @@ namespace Dividat {
             GenericGameSave save = null;
             if (memory != null)
             {
+                if (logging) Debug.Log("Memory not null. Loading");
                 save = JsonUtility.FromJson<GenericGameSave>(memory);
             }
             _memory = save;

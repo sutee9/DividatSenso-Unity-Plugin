@@ -110,7 +110,7 @@ namespace Dividat
             switch (json["type"].Value)
             {
                 case "Hello":
-                    gameController.OnHello(Settings.FromString(json["settings"].Value), json["memory"].Value);
+                    gameController.OnHello(Settings.FromString(json["settings"].Value),  (json["memory"].Value == "null") ? null : json["memory"].Value);
                     break;
                 case "Ping":
                     gameController.OnPing();
