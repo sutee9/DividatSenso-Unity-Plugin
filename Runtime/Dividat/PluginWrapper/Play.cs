@@ -95,7 +95,7 @@ namespace Dividat
             if (gameController != null)
             {
                 string jsonSignal = Marshal.PtrToStringAuto(signalJsonPtr);
-                Debug.Log("Play->On Signal: Received Signal\nJSON Raw:\n" + jsonSignal);
+                //Debug.Log("Play->On Signal: Received Signal\nJSON Raw:\n" + jsonSignal);
                 ProcessSignal(jsonSignal);
             }
             else {
@@ -110,7 +110,7 @@ namespace Dividat
             switch (json["type"].Value)
             {
                 case "Hello":
-                    Debug.Log("Settings=" + Settings.FromString(json["settings"].ToString()) + " json[\"memory\"].ToString():" + json["memory"].ToString());
+                    Debug.Log("[Play->ProcessSignal] Raw="+jsonString+" --> Parsed to Settings=" + Settings.FromString(json["settings"].ToString()) + " json[\"memory\"].ToString():" + json["memory"].ToString());
                     gameController.OnHello(Settings.FromString(json["settings"].ToString()),  (json["memory"].Value == "null") ? null : json["memory"].ToString());
                     break;
                 case "Ping":
