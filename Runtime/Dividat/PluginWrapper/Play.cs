@@ -111,7 +111,7 @@ namespace Dividat
             {
                 case "Hello":
                     Debug.Log("[Play->ProcessSignal] Raw="+jsonString+" --> Parsed to Settings=" + Settings.FromString(json["settings"].ToString()) + " json[\"memory\"].ToString():" + json["memory"].ToString());
-                    gameController.OnHello(Settings.FromString(json["settings"].ToString()),  (json["memory"].Value == "null") ? null : json["memory"].ToString());
+                    gameController.OnHello(Settings.FromString(json["settings"].ToString()), (json["memory"].ToString() == "null") ? null : json["memory"].ToString()); ;
                     break;
                 case "Ping":
                     gameController.OnPing();
