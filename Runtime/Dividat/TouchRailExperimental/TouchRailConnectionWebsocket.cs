@@ -36,8 +36,8 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
     private float _retryTimer = 0f;
 
     void Awake(){
-        _leftValues = new float[6];
-        _rightValues = new float[6];
+        _leftValues = new float[3];
+        _rightValues = new float[3];
     }
 
     // Start is called before the first frame update
@@ -91,20 +91,31 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
                 string[] values = msg.Split(',');
                 
                 if (values != null && values.Length == 6){
-                    for (int i=0; i < values.Length; i++){
-                        float pressureValue = float.Parse(values[i]);
-                        _leftValues[i] = pressureValue;
-                    } 
+                    try {
+                        for (int i=0; i < values.Length; i+=2){
+                            float pressureValue1 = float.Parse(values[i]);
+                            float pressureValue2 = float.Parse(values[i + 1]);
+                            _leftValues[i / 2] = Mathf.Max(pressureValue1, pressureValue2); //take only the stronger of the two values
+                        }
+                    }
+                    catch (Exception e) { Debug.Log("Error while parsing " + values + ": " + e); }
                 }
                 else if (values != null && values.Length == 12){
-                    for (int i=0; i < values.Length; i++){
-                        float pressureValue = float.Parse(values[i]);
-                        if (i < 6){
-                            _leftValues[i] = pressureValue;
+                    for (int i=0; i < values.Length; i+=2){
+                        try
+                        {
+                            float pressureValue1 = float.Parse(values[i]);
+                            float pressureValue2 = float.Parse(values[i]);
+                            if (i < 6)
+                            {
+                                _leftValues[i / 2] = Mathf.Max(pressureValue1, pressureValue2); //take only the stronger of the two values
+                            }
+                            else
+                            {
+                                _rightValues[i - 6] = Mathf.Max(pressureValue1, pressureValue2); //take only the stronger of the two values
+                            }
                         }
-                        else {
-                            _rightValues[i-6] = pressureValue;
-                        }
+                        catch (Exception e) { Debug.Log("Error while parsing " + values + ": " + e); }
                     } 
                 }
                 else {
