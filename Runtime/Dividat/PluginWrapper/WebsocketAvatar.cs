@@ -19,7 +19,7 @@ namespace Dividat {
         public string joinCommand = "join";
         public bool automaticReconnect = true;
         [Range(0.2f, 10f)]
-        public float retryEvery = 2f;
+        public float retryEvery = 5f;
 
         public bool Connected
         {
@@ -93,7 +93,7 @@ namespace Dividat {
 
             _websocket.OnOpen += () =>
             {
-                Debug.Log("EGI WS avatar connection open!");
+                //Debug.Log("EGI WS avatar connection open!");
                 _connected = true;
 
             };
@@ -105,7 +105,7 @@ namespace Dividat {
 
             _websocket.OnClose += (e) =>
             {
-                Debug.Log("EGI WS avatar connection closed!");
+                //Debug.Log("EGI WS avatar connection closed!");
                 _connected = false;
                 _retryTimer = 0f;
             };
@@ -136,7 +136,9 @@ namespace Dividat {
                     if (_retryTimer >= retryEvery)
                     {
                         _retryTimer = 0f;
+                         #pragma warning disable CS4014 //Do not wait in Update method, else unity main thread will block.
                         _websocket.Connect();
+                        #pragma warning restore CS4014
                     }
                 }
             }
