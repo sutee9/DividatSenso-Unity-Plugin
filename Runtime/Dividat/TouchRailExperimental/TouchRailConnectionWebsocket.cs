@@ -8,6 +8,7 @@ using NativeWebSocket;
 public class TouchRailConnectionWebsocket : MonoBehaviour
 {
     WebSocket _websocket;
+    public int lastUpdateFrameNumber { get {return _lastUpdatedFrame; }}
     int _lastUpdatedFrame = 0;
     [Header("Network Configuration")]
     public string serverURL = "ws://localhost:8080";
