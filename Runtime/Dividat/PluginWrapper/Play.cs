@@ -20,7 +20,7 @@ namespace Dividat
             {
                 Play.gameController = gameController;
                 Play.Wire();
-                Debug.Log("Dividat.Play is now wired");
+                //Debug.Log("Dividat.Play is now wired");
             }
             else
             {

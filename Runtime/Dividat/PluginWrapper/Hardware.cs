@@ -74,7 +74,7 @@ namespace Dividat
 #if UNITY_WEBGL && !UNITY_EDITOR
 #elif UNITY_EDITOR
             WebsocketAvatar.Instance.Register();
-            Debug.Log("Hardware->Wire complete.");
+            //Debug.Log("Hardware->Wire complete.");
 #endif
         }
 

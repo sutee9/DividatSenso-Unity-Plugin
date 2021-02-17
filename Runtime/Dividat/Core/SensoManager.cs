@@ -252,7 +252,7 @@ namespace Dividat {
 
         protected void Start(){
             // Register hooks with platform interface
-            Debug.Log("[SensoManager] Start");
+            if (logging) Debug.Log("[SensoManager] Start");
             Play.Init(this);
             if (autoHelloOnStart) {
                 #if UNITY_EDITOR
