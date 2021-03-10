@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Dividat;
@@ -9,34 +8,35 @@ using JetBrains.Annotations;
 ///<summary>Senso Manager summarizes all access to the Senso platform. You do not normally need to access
 ///the hardware and service representations <code>Dividat.Hardware</code> and <code>Dividat.Software</code>.
 ///Direct access to these two core classes is not needed in most cases. SensoManager</summary>
-namespace Dividat {
+namespace Dividat
+{
 
-    public enum SimulatedKeyInputType {StepPlate, CenterOfGravity};
+    public enum SimulatedKeyInputType { StepPlate, CenterOfGravity };
 
     public class SensoManager : MonoBehaviour, IPlayBehaviour
-    { 
+    {
         //User Configuration of the Manager
         #region EditorProperties
         [Header("Behaviour Configuration")]
         [Tooltip("If force on all plates combined is lower than this value, it is considered that the player is jumping")]
         public float jumpForceThreshold = 0.05f;
         [Tooltip("The maximum time a jump may last in seconds. If the person lands before this the jump is cancelled, the OnJumpLanded event is triggered. Else, the jump is cancelled with the OnJumpCancelled event.")]
-        public float maxJumpTime = 1f;  
+        public float maxJumpTime = 1f;
 
         [Tooltip("If there is less weight on Senso than this threshold, it is considered that no person is present. If there is no person present for more than activityTimeout, then personPresent becomes false.")]
         public float playerPresenceForceThreshold = 0.05f;
         [Tooltip("How many seconds without input above playerPresenceForceThreshold before personPresent becomes false.")]
         public float activityTimeout = 10f;
 
-		[Tooltip("Filter shakyness of center of gravity movement.")]
-		[Range(0f, 0.95f)]
-		public float CenterOfGravityFilterStrength = 0.2f;
+        [Tooltip("Filter shakyness of center of gravity movement.")]
+        [Range(0f, 0.95f)]
+        public float CenterOfGravityFilterStrength = 0.2f;
 
         [Header("Advanced Configuration")]
         [Tooltip("Allows to configure varying SensoSetups. Leave empty to get default setting.")]
         public SensoHardwareConfiguration sensoHardwareConfiguration;
         #endregion EditorProperties
-        
+
         //Public Properties, offering all convenience functions to get Senso Status.
         #region Properties
 
@@ -44,14 +44,14 @@ namespace Dividat {
         {
             get
             {
-                if (_instance == null )
+                if (_instance == null)
                 {
-                    _instance = FindObjectOfType<SensoManager> ();
-                    if (_instance == null )
+                    _instance = FindObjectOfType<SensoManager>();
+                    if (_instance == null)
                     {
-                        GameObject obj = new GameObject ();
+                        GameObject obj = new GameObject();
                         obj.name = "SensoManager";
-                        _instance = obj.AddComponent<SensoManager> ();
+                        _instance = obj.AddComponent<SensoManager>();
                     }
                 }
                 return _instance;
@@ -72,16 +72,19 @@ namespace Dividat {
         [Header("Current Status (Visualization Only, do not Edit)")]
         [SerializeField]
         private bool _ready = false;
-        public bool Ready {
+        public bool Ready
+        {
             get { return _ready; }
         }
-        public bool Suspended {
+        public bool Suspended
+        {
             get { return _suspended; }
         }
         [SerializeField]
         private bool _suspended = false;
 
-        public bool Ended {
+        public bool Ended
+        {
             get { return _ended; }
         }
         [SerializeField]
@@ -89,26 +92,32 @@ namespace Dividat {
         public bool jump = false;
 
         //How long has the player been off the plate/force below jump threshold?
-        public float JumpTimer {
-            get {
-                if (jump == true){
+        public float JumpTimer
+        {
+            get
+            {
+                if (jump == true)
+                {
                     return _jumpTimer;
                 }
                 else return 0f;
-            } 
+            }
         }
-        
+
         //If there is more force than playerPresentForceThreshold on the Senso 
         //or there is less force, but activity timeout has not yet expired, we 
         //consider the player present (true), else this is false.
-        public bool PlayerPresent {
-            get { return _playerPresent; } 
+        public bool PlayerPresent
+        {
+            get { return _playerPresent; }
             set { _playerPresent = value; }
         }
 
         //The combined force applied to all plates summed up
-        public float TotalForce {
-            get {
+        public float TotalForce
+        {
+            get
+            {
                 return _totalForce;
             }
         }
@@ -116,22 +125,28 @@ namespace Dividat {
         ///This is equivalent to the player's calculated center of gravity. 
         //It is centered at zero, and ranges as far as the Dimensions/2 of the 
         //SensoHardwareConfiguration.  
-        public Vector2 CenterOfGravity {
-            get {
+        public Vector2 CenterOfGravity
+        {
+            get
+            {
                 return _cog - _sensoCenter;
             }
         }
 
         //The Settings object as received from Dividat Play. 
-        public Settings Settings {
-            get {
+        public Settings Settings
+        {
+            get
+            {
                 return _settings;
             }
         }
 
         //The Memory blob as received from Dividat Play.
-        public GenericGameSave Memory {
-            get {
+        public GenericGameSave Memory
+        {
+            get
+            {
                 return _memory;
             }
         }
@@ -154,7 +169,7 @@ namespace Dividat {
         public delegate void DividatToggleEvent(bool status);
         public delegate void DividatPositionEvent(float x, float y);
         public delegate void DividatDirectionEvent(Direction dir);
-        
+
         #region Private Variables
         //Private Config Vars
         private static SensoManager _instance;
@@ -165,7 +180,7 @@ namespace Dividat {
         //Private movement-related vars
         [SerializeField]
         private Plate[] _plates;
-        
+
         private float _totalForce = 0f;
 
         [SerializeField]
@@ -174,7 +189,7 @@ namespace Dividat {
 
         [SerializeField]
         private Vector2 _simulatedCog = Vector2.positiveInfinity;
-        
+
         private float _jumpTimer = float.MaxValue;
         private float lastActivity = float.MinValue;
 
@@ -187,7 +202,8 @@ namespace Dividat {
         /**
          * Get the plate state. This includes the state of simulated key input.
          */
-        public Plate GetPlateState(Direction direction){
+        public Plate GetPlateState(Direction direction)
+        {
             return _plates[(int)direction];
         }
 
@@ -202,19 +218,22 @@ namespace Dividat {
         /**
          * Returns true if plate was stepped on during the time of the last frame.
          */
-        public bool GetStep(Direction dir){
-            return _plates[(int)dir].changedAt == Time.frameCount-1 && _plates[(int)dir].active;
+        public bool GetStep(Direction dir)
+        {
+            return _plates[(int)dir].changedAt == Time.frameCount - 1 && _plates[(int)dir].active;
         }
 
         /**
          * Returns true step was released on plate during the time of the last frame.
          */
-        public bool GetRelease(Direction dir){
-            return _plates[(int)dir].changedAt == Time.frameCount-1 && !_plates[(int)dir].active;
+        public bool GetRelease(Direction dir)
+        {
+            return _plates[(int)dir].changedAt == Time.frameCount - 1 && !_plates[(int)dir].active;
         }
 
-        public void Vibrate(MotorPattern preset){
-            Hardware.ActivateMotor(preset);   
+        public void Vibrate(MotorPattern preset)
+        {
+            Hardware.ActivateMotor(preset);
         }
 
         //public void Store(string serializedMemory)
@@ -225,10 +244,10 @@ namespace Dividat {
 
 
         #region Unity Boilerplate functions
-        protected void Awake ()
+        protected void Awake()
         {
             //Check the singleton is unique
-            if ( _instance == null )
+            if (_instance == null)
             {
                 _instance = SensoManager.Instance;
             }
@@ -250,16 +269,18 @@ namespace Dividat {
             DontDestroyOnLoad(gameObject);
         }
 
-        protected void Start(){
+        protected void Start()
+        {
             // Register hooks with platform interface
-            if (logging) Debug.Log("[SensoManager] Start");
+            Debug.Log("[SensoManager] Start");
             Play.Init(this);
-            if (autoHelloOnStart) {
-                #if UNITY_EDITOR
+            if (autoHelloOnStart)
+            {
+#if UNITY_EDITOR
                 SimulatedOnHello();
-                #endif
+#endif
             }
-            _sensoCenter = sensoHardwareConfiguration.upperLeftCorner + sensoHardwareConfiguration.Dimensions/2f;
+            _sensoCenter = sensoHardwareConfiguration.upperLeftCorner + sensoHardwareConfiguration.Dimensions / 2f;
             _cog = _lastValidCog = _simulatedCog = _sensoCenter;
         }
 
@@ -269,7 +290,8 @@ namespace Dividat {
             ProcessSensoInput();
 
             //Check Activity Timeouts and if Player Present
-            if (_totalForce > playerPresenceForceThreshold){
+            if (_totalForce > playerPresenceForceThreshold)
+            {
                 lastActivity = Time.time;
             }
             //else {
@@ -277,53 +299,64 @@ namespace Dividat {
             //    _cog = _sensoCenter;
             //}
             _playerPresent = Time.time - lastActivity < activityTimeout;
-            if (_playerPresent != _playerPresentLast){
+            if (_playerPresent != _playerPresentLast)
+            {
                 OnPlayerPresenceChanged?.Invoke(_playerPresent);
             }
 
             //Check for movement patterns
-            if (_totalForce < jumpForceThreshold){
-                if (!jump && Mathf.Abs(_jumpTimer) < playerPresenceForceThreshold){
+            if (_totalForce < jumpForceThreshold)
+            {
+                if (!jump && Mathf.Abs(_jumpTimer) < playerPresenceForceThreshold)
+                {
                     OnJumped?.Invoke(_cog.x, _cog.y);
                     if (logging) Debug.Log("Jumped");
                     _jumpTimer = 0f;
                     jump = true;
                 }
-                else {
+                else
+                {
                     _jumpTimer += Time.deltaTime;
-                    if (_jumpTimer > maxJumpTime & jump){
+                    if (_jumpTimer > maxJumpTime & jump)
+                    {
                         jump = false;
                         if (logging) Debug.Log("Jump Cancelled");
                         OnJumpCancelled?.Invoke();
                     }
                 }
             }
-            else{
-                if (jump) {
+            else
+            {
+                if (jump)
+                {
                     OnJumpLanded?.Invoke(_cog.x, _cog.y);
                     if (logging) Debug.Log("Jump landed");
                 }
-                jump=false;
+                jump = false;
                 _jumpTimer = 0f;
             }
         }
 
         /// Read Input from Senso Hardware and Simulated Key Input, and calculate all the updated cog, plate states, etc.
-        private void ProcessSensoInput(){
+        private void ProcessSensoInput()
+        {
             _lastValidCog = _cog;
             //1. UPDATE PLATE STATE
             _plates = (Plate[])Hardware.Plates.Clone();
-            
+
             Direction[] dirs = (Direction[])System.Enum.GetValues(typeof(Direction));
-            foreach(Direction dir in dirs){
-                if (GetStep(dir)){
+            foreach (Direction dir in dirs)
+            {
+                if (GetStep(dir))
+                {
                     OnStepDown?.Invoke(dir);
                 }
-                if (GetRelease(dir)){
+                if (GetRelease(dir))
+                {
                     OnStepReleased?.Invoke(dir);
                 }
             }
-            
+
             bool keyInputDetected = false;
             if (keyInputType == SimulatedKeyInputType.StepPlate)
             {
@@ -344,7 +377,7 @@ namespace Dividat {
                     }
                     else if (Input.GetKey(key))
                     {
-                        if (logging)  Debug.Log("down " + dir);
+                        if (logging) Debug.Log("down " + dir);
                         _plates[(int)dir] = GetSimulatedPlate(dir, true, false);
                         keyInputDetected = true;
                     }
@@ -388,16 +421,17 @@ namespace Dividat {
             //Calculate the center of gravity and the cumulated force on all plates
             Vector2 cog = new Vector2();
             float weight = 0f;
-            for (int i=0; i < _plates.Length; i++)
+            for (int i = 0; i < _plates.Length; i++)
             {
-                cog += _plates[i].f*(new Vector2(_plates[i].x, _plates[i].y));
+                cog += _plates[i].f * (new Vector2(_plates[i].x, _plates[i].y));
                 weight += _plates[i].f;
             }
             if (Mathf.Abs(weight) > playerPresenceForceThreshold)
             {
-				_cog = Vector3.Lerp(_lastValidCog, 1 / weight * cog, 1 - CenterOfGravityFilterStrength); //adjust so center is 0,0
+                _cog = Vector3.Lerp(_lastValidCog, 1 / weight * cog, 1 - CenterOfGravityFilterStrength); //adjust so center is 0,0
             }
-            else { 
+            else
+            {
                 _cog = _lastValidCog;
             }
             _totalForce = weight;
@@ -405,7 +439,8 @@ namespace Dividat {
         #endregion Unity Boilerplate
 
         #region Process Senso Events
-        public void Finish(Metrics metrics){
+        public void Finish(Metrics metrics)
+        {
             Finish(metrics, _memory);
         }
 
@@ -413,17 +448,18 @@ namespace Dividat {
         {
             _ready = false;
             _ended = true;
-            #if !UNITY_EDITOR
+#if !UNITY_EDITOR
             Play.Finish(metrics, JsonUtility.ToJson(memory));
-            #else
+#else
             File.WriteAllText(saveFileName, JsonUtility.ToJson(memory));
-            #endif
+#endif
         }
 
         /**
          *  Finish will cause Play to Terminate the application. 
          */
-        public void Finish(Metrics metrics, PlaySaveGame memory){
+        public void Finish(Metrics metrics, PlaySaveGame memory)
+        {
             GenericGameSave save = GenericGameSave.Wrap(memory);
             Finish(metrics, save);
         }
@@ -431,7 +467,7 @@ namespace Dividat {
         public void OnHello(Settings settings, string memory)
         {
             if (logging) Debug.Log("[SensoManager] OnHello");
-            if (logging) Debug.Log("Settings: " +JsonUtility.ToJson(settings));
+            if (logging) Debug.Log("Settings: " + JsonUtility.ToJson(settings));
             if (logging) Debug.Log("Memory: " + memory);
             _settings = settings;
             GenericGameSave save = null;
@@ -443,17 +479,18 @@ namespace Dividat {
             _memory = save;
             _ready = true;
             OnReady?.Invoke();
-            #if !UNITY_EDITOR
+#if !UNITY_EDITOR
             Play.Ready();
-            #endif
+#endif
         }
 
         [ContextMenu("OnHello")]
-        public void SimulatedOnHello(){
+        public void SimulatedOnHello()
+        {
             Debug.Log("SimulatedOnHello");
             Settings s = new Settings();
             s.Add("duration", new Setting.Time(gameDuration));
-            string saveGameJSON ="";
+            string saveGameJSON = "";
             if (File.Exists(saveFileName))
             {
                 saveGameJSON = File.ReadAllText(saveFileName);
@@ -465,7 +502,7 @@ namespace Dividat {
         public void OnPing()
         {
             Play.Pong();
-            if (logging) Debug.Log("[SensoManager] OnPing");   
+            if (logging) Debug.Log("[SensoManager] OnPing");
         }
 
         public void OnSuspend()
@@ -481,9 +518,9 @@ namespace Dividat {
             if (logging) Debug.Log("[SensoManager] OnResume");
             OnResumed?.Invoke();
         }
-#endregion Process Senso Events
+        #endregion Process Senso Events
 
-#region Simulation Support Functions
+        #region Simulation Support Functions
         private static KeyCode DirectionToKey(Direction direction)
         {
             switch (direction)
@@ -523,20 +560,21 @@ namespace Dividat {
         }
 
         /// Returns a simulated digital input on plate. Always positions the input at the center of the given plate.
-        private Plate GetSimulatedPlate(Direction direction, bool active, bool changedThisFrame){ 
+        private Plate GetSimulatedPlate(Direction direction, bool active, bool changedThisFrame)
+        {
             switch (direction)
             {
                 case Direction.Up:
-                    return new Plate(1.5f, 0.5f, active ? 0.25f : 0f, active, changedThisFrame? Time.frameCount : _plates[(int)direction].changedAt);
+                    return new Plate(1.5f, 0.5f, active ? 0.25f : 0f, active, changedThisFrame ? Time.frameCount : _plates[(int)direction].changedAt);
                 case Direction.Down:
-                    return new Plate(1.5f, 2.5f, active ? 0.25f : 0f, active, changedThisFrame? Time.frameCount : _plates[(int)direction].changedAt);
+                    return new Plate(1.5f, 2.5f, active ? 0.25f : 0f, active, changedThisFrame ? Time.frameCount : _plates[(int)direction].changedAt);
                 case Direction.Left:
-                    return new Plate(0.5f, 1.5f, active ? 0.25f : 0f, active, changedThisFrame? Time.frameCount : _plates[(int)direction].changedAt);
+                    return new Plate(0.5f, 1.5f, active ? 0.25f : 0f, active, changedThisFrame ? Time.frameCount : _plates[(int)direction].changedAt);
                 case Direction.Right:
-                    return new Plate(2.5f, 1.5f, active ? 0.25f : 0f, active, changedThisFrame? Time.frameCount : _plates[(int)direction].changedAt);
+                    return new Plate(2.5f, 1.5f, active ? 0.25f : 0f, active, changedThisFrame ? Time.frameCount : _plates[(int)direction].changedAt);
                 case Direction.Center:
                 default:
-                    return new Plate(1.5f, 1.5f, active ? 0.25f : 0f, active, changedThisFrame? Time.frameCount : _plates[(int)direction].changedAt);
+                    return new Plate(1.5f, 1.5f, active ? 0.25f : 0f, active, changedThisFrame ? Time.frameCount : _plates[(int)direction].changedAt);
             }
         }
 
@@ -548,14 +586,22 @@ namespace Dividat {
          */
         public void Log(string message)
         {
+#if !UNITY_EDITOR
             Play.Log(JsonUtility.ToJson(LogEntry.Log(message)));
+#else
+            Debug.Log("Simulated Dividat Log: \"" + LogEntry.Log(message).toString() + "\""); ;
+#endif
         }
         /**
          * Logs a Warning to the Dividat Play backend, which can be reviewed after the game session.
          */
         public void LogWarning(string message)
         {
+#if !UNITY_EDITOR
             Play.Log(JsonUtility.ToJson(LogEntry.LogWarning(message)));
+#else
+            Debug.Log("Simulated Dividat Warning-Log: \"" + LogEntry.LogWarning(message).ToString() + "\"");
+#endif
         }
 
         /**
@@ -563,7 +609,11 @@ namespace Dividat {
          */
         public void LogError(string message)
         {
+#if !UNITY_EDITOR
             Play.Log(JsonUtility.ToJson(LogEntry.LogError(message)));
+#else
+            Debug.Log("Simulated Dividat Error-Log: \"" + LogEntry.LogError(message).ToString() + "\"");
+#endif
         }
         #endregion
 
@@ -596,7 +646,7 @@ namespace Dividat {
                 }
                 this.message = log;
                 this.time = time;
-                
+
             }
 
             public static LogEntry Log(string message)
