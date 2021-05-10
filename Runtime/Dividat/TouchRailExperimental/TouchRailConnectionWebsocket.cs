@@ -54,8 +54,14 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
     public void Connect(){
         ConnectSocket();
     }
+
     void ConnectSocket(){
         Connect(serverURL);
+    }
+
+    public void SetAutomaticReconnect(bool automaticReconnect)
+    {
+        this.automaticReconnect = automaticReconnect;
     }
 
     async void Connect(string url){
@@ -143,7 +149,9 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
                 _retryTimer += Time.deltaTime;
                 if (_retryTimer >= retryEvery){
                     _retryTimer=0f;
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed --> which is exactly what we want at this point.
                     _websocket.Connect();
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
                 }
             }
         }
@@ -168,6 +176,22 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
 
     private async void OnDestroy()
     {
-        await _websocket.Close();
+        if (_websocket != null) { 
+            await _websocket.Close();
+        }
+    }
+
+
+    public void Disconnect()
+    {
+        DisconnectSocket();
+    }
+    private async void DisconnectSocket()
+    {
+        if (_websocket != null) { 
+            await _websocket.Close() ;
+            _websocket = null;
+        }
+        _connected = false;
     }
 }
