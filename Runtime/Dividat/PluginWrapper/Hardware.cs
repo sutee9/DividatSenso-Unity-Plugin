@@ -116,8 +116,8 @@ namespace Dividat
 
         private static void SetPlateState(Direction direction, float x, float y, float f)
         {
-            plates[(int)direction].x = x;
-            plates[(int)direction].y = y;
+            plates[(int)direction].x = Mathf.Clamp(x, 0f, 3f);
+            plates[(int)direction].y = Mathf.Clamp(y, 0f, 3f);
             plates[(int)direction].f = f;
         }
 
