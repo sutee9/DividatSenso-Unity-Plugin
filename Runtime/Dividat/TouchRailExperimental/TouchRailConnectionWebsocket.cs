@@ -65,6 +65,7 @@ public class TouchRailConnectionWebsocket : MonoBehaviour
     }
 
     async void Connect(string url){
+        Debug.Log("Connecting " + url);
         _websocket = new WebSocket(url);
 
         _websocket.OnOpen += () =>
