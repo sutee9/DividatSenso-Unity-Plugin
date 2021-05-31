@@ -10,6 +10,16 @@ using UnityEditor;
 
 namespace Dividat {
 #if UNITY_EDITOR
+    /**
+     * While in the Editor, the Websocket Avatar, aka "Senso Editor Companion", automatically starts and tries to establish
+     * a connection to Senso.
+     * 
+     * In order for this connection to work, the user must complete the following.
+     * 
+     * 1. Install the Dividat Senso Driver from Dividat
+     * 2. Connect and test the connection using google chrome.
+     * 3. Start the "Companion" from the unity editor: Dividat > Senso Editor Companion. Make sure the editor runs in Chrome!
+     */
     public class WebsocketAvatar : MonoBehaviour
     {
         WebSocket _websocket;
@@ -73,7 +83,7 @@ namespace Dividat {
         // Start is called before the first frame update
         void Start()
         {
-            Debug.Log("Starting EGI");
+            Debug.Log("[Senso Editor Companion] Starting EGI");
             Connect();
         }
 
@@ -93,7 +103,7 @@ namespace Dividat {
 
             _websocket.OnOpen += () =>
             {
-                //Debug.Log("EGI WS avatar connection open!");
+                Debug.Log("[Senso Editor Companion] Avatar connection open!");
                 _connected = true;
 
             };

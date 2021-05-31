@@ -15,7 +15,7 @@ namespace Dividat {
 
         
 
-        [MenuItem("Window/Dividat/Senso Editor Companion")]
+        [MenuItem("Dividat/Senso Editor Companion", false, 100)]
         public static void ShowWindow()
         {
             if (EditorPrefs.HasKey(COMP_ROOM_KEY)) {

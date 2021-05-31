@@ -490,7 +490,7 @@ namespace Dividat
         [ContextMenu("OnHello")]
         public void SimulatedOnHello()
         {
-            Debug.Log("SimulatedOnHello");
+            //Debug.Log("SimulatedOnHello");
             Settings s = new Settings();
             s.Add("duration", new Setting.Time(gameDuration));
             string saveGameJSON = "";
