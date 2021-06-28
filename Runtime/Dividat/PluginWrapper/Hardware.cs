@@ -69,6 +69,29 @@ namespace Dividat
             }
         }
 
+        public static void SetLed(LedPattern pattern)
+        {
+#if UNITY_WEBGL && !UNITY_EDITOR
+            JSONObject settings = new JSONObject();
+            settings["channel"] = (int)pattern.channel;
+            settings["symbol"] = (int)pattern.symbol;
+            settings["mode"] = (int)pattern.mode;
+            settings["color"] = new JSONObject();
+            settings["color"]["r"] = pattern.color.r;
+            settings["color"]["g"] = pattern.color.g;
+            settings["color"]["b"] = pattern.color.b;
+            settings["brightness"] = (int)pattern.brightness;
+
+            JSONObject cmd = new JSONObject();
+            cmd["type"] = "Led";
+            cmd["settings"] = settings;
+
+            Play.Command(cmd.ToString());
+#else
+            Debug.LogWarning("Warning: LedPattern=" + pattern + " received, but LED patterns are not supported on this platform.");
+#endif
+        }
+
         public static void Wire()
         {
 #if UNITY_WEBGL && !UNITY_EDITOR
