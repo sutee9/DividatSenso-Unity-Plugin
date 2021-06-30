@@ -1863,9 +1863,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ee337f1d42844d73b89ba6b01b34d57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  serverURL: ws://localhost:54535
+  serverURL: ws://localhost:3030
   connectAtStartup: 1
   automaticReconnect: 1
   retryEvery: 2
+  logging: 0
+  loggingAllMessages: 0
   _leftValues: []
   _rightValues: []
