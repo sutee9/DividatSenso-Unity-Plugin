@@ -50,9 +50,9 @@ MonoBehaviour:
   activityTimeout: 10
   CenterOfGravityFilterStrength: 0.2
   sensoHardwareConfiguration: {fileID: 0}
-  logging: 1
+  logging: 0
   simulateRemoteLogs: 0
-  keyInputType: 1
+  keyInputType: 0
   centerOfGravitySpeed: 3
   saveFileName: DividatSaveGame.json
   gameDuration: 120000

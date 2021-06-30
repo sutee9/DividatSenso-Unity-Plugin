@@ -4,8 +4,6 @@ using System.Runtime.InteropServices;
 
 using UnityEngine;
 using SimpleJSON;
-using Dividat;
-
 
 namespace Dividat
 {

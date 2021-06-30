@@ -18,16 +18,6 @@ namespace Dividat
     /// </summary>
     public static class Hardware
     {
-        // private static bool centerActive = false;
-        // private static int centerChangedAt = Int32.MaxValue;
-        // private static bool upActive = false;
-        // private static int upChangedAt = Int32.MaxValue;
-        // private static bool rightActive = false;
-        // private static int rightChangedAt = Int32.MaxValue;
-        // private static bool downActive = false;
-        // private static int downChangedAt = Int32.MaxValue;
-        // private static bool leftActive = false;
-        // private static int leftChangedAt = Int32.MaxValue;
         public static Plate[] Plates
         {
             get { return plates; }
@@ -58,20 +48,20 @@ namespace Dividat
         {
             if (pattern.GetPreset() != null)
             {
-#if UNITY_WEBGL && !UNITY_EDITOR
+            #if UNITY_WEBGL && !UNITY_EDITOR
                 JSONObject cmd = new JSONObject();
                 cmd["type"] = "Motor";
                 cmd["preset"] = pattern.GetPreset();
                 Play.Command(cmd.ToString());
-#else
+            #else
                 Debug.LogWarning("Warning: MotorPattern=" + pattern.GetPreset() + " received, but motor patterns are not supported on this platform.");
-#endif
+            #endif
             }
         }
 
         public static void SetLed(LedPattern pattern)
         {
-#if UNITY_WEBGL && !UNITY_EDITOR
+        #if UNITY_WEBGL && !UNITY_EDITOR
             JSONObject settings = new JSONObject();
             settings["channel"] = (int)pattern.channel;
             settings["symbol"] = (int)pattern.symbol;
@@ -87,9 +77,9 @@ namespace Dividat
             cmd["settings"] = settings;
 
             Play.Command(cmd.ToString());
-#else
+        #else
             Debug.LogWarning("Warning: LedPattern=" + pattern + " received, but LED patterns are not supported on this platform.");
-#endif
+        #endif
         }
 
         public static void Wire()
@@ -117,21 +107,6 @@ namespace Dividat
         private static int GetFrameCount(Direction direction)
         {
             return plates[(int)direction].changedAt;
-            // switch (direction)
-            // {
-            //     case Direction.Center:
-            //         return centerChangedAt;
-            //     case Direction.Up:
-            //         return upChangedAt;
-            //     case Direction.Right:
-            //         return rightChangedAt;
-            //     case Direction.Down:
-            //         return downChangedAt;
-            //     case Direction.Left:
-            //         return leftChangedAt;
-            //     default:
-            //         return -10;
-            // }
         }
         #endregion
 

@@ -103,7 +103,7 @@ namespace Dividat {
 
             _websocket.OnOpen += () =>
             {
-                Debug.Log("[Senso Editor Companion] Avatar connection open!");
+                //Debug.Log("[Senso Editor Companion] Avatar connection open!");
                 _connected = true;
 
             };

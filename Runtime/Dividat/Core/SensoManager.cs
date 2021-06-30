@@ -1,9 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Dividat;
+﻿using UnityEngine;
 using System.IO;
-using JetBrains.Annotations;
 
 ///<summary>Senso Manager summarizes all access to the Senso platform. You do not normally need to access
 ///the hardware and service representations <code>Dividat.Hardware</code> and <code>Dividat.Software</code>.
@@ -239,9 +235,9 @@ namespace Dividat
             Hardware.ActivateMotor(preset);
         }
 
-        public void Shine(LedPattern pattern)
+        public void ChangeLED(LedPattern deltaPattern)
         {
-            Hardware.SetLed(pattern);
+            Hardware.SetLed(deltaPattern);
         }
 
         //public void Store(string serializedMemory)
@@ -284,9 +280,9 @@ namespace Dividat
             Play.Init(this);
             if (autoHelloOnStart)
             {
-#if UNITY_EDITOR
+        #if UNITY_EDITOR
                 SimulatedOnHello();
-#endif
+        #endif
             }
             _sensoCenter = sensoHardwareConfiguration.upperLeftCorner + sensoHardwareConfiguration.Dimensions / 2f;
             _cog = _lastValidCog = _simulatedCog = _sensoCenter;
@@ -375,12 +371,14 @@ namespace Dividat
                     {
                         if (logging) Debug.Log("step " + dir);
                         _plates[(int)dir] = GetSimulatedPlate(dir, true, true);
+                        OnStepDown?.Invoke(dir);
                         keyInputDetected = true;
                     }
                     else if (Input.GetKeyUp(key))
                     {
                         if (logging) Debug.Log("release " + dir);
                         _plates[(int)dir] = GetSimulatedPlate(dir, false, true);
+                        OnStepReleased?.Invoke(dir);
                         keyInputDetected = true;
                     }
                     else if (Input.GetKey(key))
@@ -456,11 +454,11 @@ namespace Dividat
         {
             _ready = false;
             _ended = true;
-#if !UNITY_EDITOR
+        #if !UNITY_EDITOR
             Play.Finish(metrics, JsonUtility.ToJson(memory));
-#else
+        #else
             File.WriteAllText(saveFileName, JsonUtility.ToJson(memory));
-#endif
+        #endif
         }
 
         /**
@@ -487,9 +485,9 @@ namespace Dividat
             _memory = save;
             _ready = true;
             OnReady?.Invoke();
-#if !UNITY_EDITOR
+        #if !UNITY_EDITOR
             Play.Ready();
-#endif
+        #endif
         }
 
         [ContextMenu("OnHello")]
@@ -594,22 +592,22 @@ namespace Dividat
          */
         public void Log(string message)
         {
-#if !UNITY_EDITOR
+            #if !UNITY_EDITOR
             Play.Log(JsonUtility.ToJson(LogEntry.Log(message)));
-#else
+            #else
             if (simulateRemoteLogs) Debug.Log("Simulated Dividat Log: \"" + LogEntry.Log(message).toString() + "\""); ;
-#endif
+            #endif
         }
         /**
          * Logs a Warning to the Dividat Play backend, which can be reviewed after the game session.
          */
         public void LogWarning(string message)
         {
-#if !UNITY_EDITOR
+            #if !UNITY_EDITOR
             Play.Log(JsonUtility.ToJson(LogEntry.LogWarning(message)));
-#else
+            #else
             if (simulateRemoteLogs) Debug.Log("Simulated Dividat Warning-Log: \"" + LogEntry.LogWarning(message).ToString() + "\"");
-#endif
+            #endif
         }
 
         /**
@@ -617,11 +615,11 @@ namespace Dividat
          */
         public void LogError(string message)
         {
-#if !UNITY_EDITOR
+            #if !UNITY_EDITOR
             Play.Log(JsonUtility.ToJson(LogEntry.LogError(message)));
-#else
+            #else
             if (simulateRemoteLogs) Debug.Log("Simulated Dividat Error-Log: \"" + LogEntry.LogError(message).ToString() + "\"");
-#endif
+            #endif
         }
         #endregion
 
