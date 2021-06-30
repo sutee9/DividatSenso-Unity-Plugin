@@ -239,6 +239,11 @@ namespace Dividat
             Hardware.ActivateMotor(preset);
         }
 
+        public void Shine(LedPattern pattern)
+        {
+            Hardware.SetLed(pattern);
+        }
+
         //public void Store(string serializedMemory)
         //{
         //    _memory = serializedMemory;
