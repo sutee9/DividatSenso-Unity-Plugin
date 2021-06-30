@@ -10,7 +10,7 @@ namespace Dividat {
     {
         static string companionRoomName = "";
         public const string COMP_ROOM_KEY = "DividatCompanionRoomName";
-        public const string PLAYDEV_BASE_URL = "https://lab.dividat.ch/e/IkG_l2uAE/playDev.html#play";
+        public const string PLAYDEV_BASE_URL = "https://lab.dividat.ch/e/L-VE-JizC/playDev.html#play";
         public const string AVATAR_APP_URL = "external/ws-avatar/index.html";
 
         
