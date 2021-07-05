@@ -134,8 +134,9 @@ namespace Dividat
         /// NOTE: If you call this method on a pattern, all previous calls to SwitchOn will be erased. You can only SwitchOn OR SwitchOff. To turn the lights off on one channel,
         /// and then turn it on on another, use two distinct patterns and send them to Senso.
         /// </summary>
-        public void SwitchOff(LedPattern.Channel channel)
+        public void SwitchOff(LedPattern.Channel channel, Symbol symbol = Symbol.All)
         {
+            this.symbol = symbol;
             this.channel |= channel;
             this.mode = Mode.Off;
         }
